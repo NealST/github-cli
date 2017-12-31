@@ -1,0 +1,48 @@
+{
+  "name": "github-cli",
+  "version": "1.0.0",
+  "description": "github的命令行操作工具",
+  "main": "index.js",
+  "scripts": {
+    "test": "test",
+    "build": "./node_modules/.bin/tsc",
+    "watch": "./node_modules/.bin/tsc -w",
+    "clean": "rm -rf bin lib",
+    "prepublish": "npm run clean && npm run build"
+  },
+  "bin": {
+    "github": "./bin/index.js",
+    "github_repos": "./bin/github_repos.js",
+    "github_authorize": "./bin/github_authorize.js"
+  },
+  "dependencies": {
+    "axios": "^0.17.1",
+    "chalk": "^2.3.0",
+    "commander": "^2.12.2",
+    "github": "^13.0.1",
+    "ink": "^0.3.1",
+    "ora": "^1.3.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NealST/github-cli.git"
+  },
+  "keywords": [
+    "github",
+    "cli"
+  ],
+  "author": "mozheng",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/NealST/github-cli/issues"
+  },
+  "homepage": "https://github.com/NealST/github-cli#readme",
+  "devDependencies": {
+    "@types/chalk": "^2.2.0",
+    "@types/commander": "^2.12.2",
+    "@types/node": "^8.5.1",
+    "inquirer": "^4.0.1",
+    "jest": "^22.0.1",
+    "typescript": "^2.6.2"
+  }
+}

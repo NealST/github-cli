@@ -1,0 +1,18 @@
+{
+    "github_activity": "./bin/activity.js",
+    "github_apps": "./bin/apps.js",
+    "github_authorize": "./bin/authorize.js",
+    "github_enterprise": "./bin/enterprise.js",
+    "github_gists": "./bin/gists.js",
+    "github_data": "./bin/gitdata.js",
+    "github_issues": "./bin/issues.js",
+    "github_orgs": "./bin/orgs.js",
+    "github_projects": "./bin/projects.js",
+    "github_pullRequests": "./bin/pullRequests.js",
+    "github_repos": "./bin/repos.js",
+    "github_search": "./bin/search.js",
+    "github_users": "./bin/users.js",
+    "github_migrations": "./bin/migrations.js",
+    "github_misc": "./bin/misc.js",
+    "github_reactions": "./bin/reactions.js"
+}
