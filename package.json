@@ -13,15 +13,20 @@
   "bin": {
     "github": "./bin/index.js",
     "github_repos": "./bin/github_repos.js",
-    "github_authorize": "./bin/github_authorize.js"
+    "github_issues": "./bin/github_issues.js",
+    "github_pr": "./bin/github_pullrequest.js",
+    "github_react": "./bin/github_reaction.js",
+    "github_me": "./bin/github_users.js",
+    "github_search": "./bin/github_search.js"
   },
   "dependencies": {
     "axios": "^0.17.1",
     "chalk": "^2.3.0",
     "commander": "^2.12.2",
-    "github": "^13.0.1",
-    "ink": "^0.3.1",
-    "ora": "^1.3.0"
+    "hyperlinker": "^1.0.0",
+    "ora": "^1.3.0",
+    "supports-hyperlinks": "^1.0.1",
+    "update-notifier": "^2.3.0"
   },
   "repository": {
     "type": "git",
@@ -39,10 +44,16 @@
   "homepage": "https://github.com/NealST/github-cli#readme",
   "devDependencies": {
     "@types/chalk": "^2.2.0",
+    "@types/cli-table2": "^0.2.1",
     "@types/commander": "^2.12.2",
+    "@types/inquirer": "0.0.36",
     "@types/node": "^8.5.1",
+    "@types/ora": "^1.3.1",
+    "cfonts": "^1.1.3",
+    "cli-table2": "^0.2.0",
     "inquirer": "^4.0.1",
     "jest": "^22.0.1",
+    "tslint": "^5.9.1",
     "typescript": "^2.6.2"
   }
 }
