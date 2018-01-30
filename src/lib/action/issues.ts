@@ -16,8 +16,6 @@ export const issueActions = {
         }
       }).then((res: any) => {
         console.log(res.data)
-      }).catch((err: any) => {
-        console.log(err)
       })
     })
   },
@@ -31,8 +29,6 @@ export const issueActions = {
           }  
       }).then((res: any) => {
           console.log(res.data)
-      }).catch((err: any) => {
-          console.log(err)
       })
     })
   },
@@ -214,22 +210,25 @@ export const issueActions = {
   }
 }
 
-const selectIssue = function (datalist: any, fn: Function) {
-  let dataTable = createTabale({
-    head: ['title', 'content', 'number', 'detailUrl']
-  })
-  datalist.forEach((item: any) => {
-    dataTable.push([item.title, item.body, item.number, getHyperlinkText('点击查看该issue详情', item.html_url)])
-  })
-  fjfjfklffaf
-  askquestion([{
-    type: 'list',
-    name: 'issueItem',
-    message: 'please select a issue from this list:',
-    choices: datalist
-  }], function (answers: any) {
-    fn(answers.issueItem[2])
-  })
+const selectIssue = function (fn: Function) {
+  selectRepos((reposname: string, targetName: string) => {
+    issueActions.listForRepos(targetName, [reposname], {}).then((res: any) => {
+      let dataTable: any = createTabale({
+        head: ['title', 'content', 'number', 'detailUrl']
+      })
+      res[0].forEach((item: any) => {
+        dataTable.push([item.title, item.body, item.number, getHyperlinkText('点击查看该issue详情', item.html_url)])
+      })
+      askquestion([{
+        type: 'list',
+        name: 'issueItem',
+        message: 'please select a issue from this list:',
+        choices: dataTable
+      }], function (answers: any) {
+        fn(targetName, reposname, answers.issueItem[2])
+      })
+    })
+  }, true, 'list')
 }
 
 export const issueStrategies = {
@@ -269,14 +268,98 @@ export const issueStrategies = {
       }, true)
     },
     '-c': function () {
+      selectIssue(function (targetName: string, reposname: string, theIssueNumber: number) {
+        issueActions.listComments({
+          ownername: targetName,
+          reposname: reposname,
+          number: theIssueNumber,
+          data: {}
+        })
+      })
+    },
+    '-cr': function () {
       selectRepos((reposname: string, targetName: string) => {
-        issueActions.listForRepos(targetName, [reposname], {}).then((res: any) => {
-          askquestion()
-          res[0]
+        issueActions.listCommentsForRepo({
+          ownername: targetName,
+          reposname: reposname
         })
       }, true, 'list')
     }
-    'list all comments of a issue',
-    '-cr': 'list comments of issues of a repository'
+  },
+  'cr': {
+    '-r': function () {
+      selectRepos((reposname: string, targetName: string) => {
+        askquestion([{
+          type: 'input',
+          name: 'title',
+          message: 'please input the title of this issue:'
+        }, {
+          type: 'editor',
+          name: 'content',
+          message: 'please input the content of this issue'
+        }], function (answers: any) {
+          issueActions.create({
+            ownername: targetName,
+            reposname: reposname,
+            data: {
+              title: answers.title,
+              content: answers.content
+            }
+          })
+        }) 
+      })
+    },
+    '-a': function () {
+      selectIssue(function (ownername: string, reposname: string, issuenumber: number) {
+        askquestion([{
+          type: 'input',
+          name: 'assignees',
+          message: 'please input some assignees of this issue'
+        }], function (answers: any) {
+          issueActions.addAssignees({
+            ownername: ownername,
+            reposname: reposname,
+            number: issuenumber,
+            data: {
+              assignees: answers.assignees.split(' ')
+            }
+          })
+        })
+       })
+    },
+    '-c': function () {
+      selectIssue(function (ownername: string, reposname: string, issuenumber: number) {
+        askquestion([{
+          type: 'editor',
+          name: 'content',
+          message: 'please input the content of this comment for the issue:'
+        }], function (answers: any) {
+          issueActions.createComment({
+            ownername: ownername,
+            reposname: reposname,
+            number: issuenumber,
+            data: {
+              body: answers.content
+            }
+          })
+        })
+      })
+    },
+    '－l': function () {
+      selectIssue(function (ownername: string, reposname: string, issuenumber: number) {
+        askquestion([{
+          type: 'input',
+          name: 'labels',
+          message: 'please input some labels for this issue:'
+        }], function (answers: any) {
+          issueActions.addLabelsForIssue({
+            ownername: ownername,
+            reposname: reposname,
+            number: issuenumber,
+            data: answers.labels.split(' ')
+          })
+        })
+      })
+    }
   }
 }

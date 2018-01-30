@@ -3,12 +3,8 @@
 import * as program from 'commander'
 
 import { mainTitle, command, example, describe, error } from './tools/output'
-import issues from '../lib/action/issues'
-import repos from '../lib/action/repos'
-import spinner from '../lib/tools/spinner'
-import askquestion from '../lib/tools/askQuestion';
-import { selectRepos } from '../lib/tools/verification';
 import shell from '../lib/tools/createshell'
+
 
 program
   .version(require('../package.json').version)
@@ -23,7 +19,7 @@ const commandTypeObject: {[key: string]: any} = {
       '-r': 'list issues for repository',
       '-a': 'list all asignees of repository issues',
       '-c': 'list all comments of a issue',
-      '-cr': 'list comments of issues of a repository'
+      '-cr': 'list comments of in a repository'
     }
   },
   'cr': {
@@ -88,6 +84,8 @@ if (!thecmd || thecmd === '-h') {
 if (!commandTypeObject.hasOwnProperty(thecmd)) {
   error('the command you input is invalid, you could get the surpported commands through $ github issues -h')
 }
+
+
 
 switch (thecmd) {
   case 'ls':

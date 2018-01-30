@@ -146,6 +146,7 @@ export const request = function (url: string, type: string, data: any, requestOp
     timeout: 5000,
     ...ajaxdata
   }, requestOptions || {})
-  return axios(configOptions)
+  return axios(configOptions).catch((err: any) => {
+    console.log(err)
+  })
 }
-
