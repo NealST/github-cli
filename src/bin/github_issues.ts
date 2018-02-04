@@ -2,9 +2,8 @@
 
 import * as program from 'commander'
 
-import { mainTitle, command, example, describe, error } from './tools/output'
-import shell from '../lib/tools/createshell'
-
+import { mainTitle, command, example, describe, error } from './tools/output';
+import { issueStrategies } from '../lib/action/issues'
 
 program
   .version(require('../package.json').version)
@@ -54,10 +53,10 @@ program.on('--help', function () {
   command()
   Object.keys(commandTypeObject).forEach((commandItem) => {
     command(`$ github issues ${commandItem} --- ${commandTypeObject[commandItem].message}`)
-    command('  supported child options as follows:')
+    describe('the supported child options for this command as follows:')
     let childOptions = commandTypeObject[commandItem].childOptions
     Object.keys(childOptions).forEach((item) => {
-      command(`    $ github issues ${commandItem} ${item} --- ${childOptions[item]}`)
+      command(`  ${item} --- ${childOptions[item]}`)
     })
   })
   
@@ -74,7 +73,7 @@ program.on('--help', function () {
 })
 
 let thecmd = program.args[0] // 命令类型
-let theparam = program.args[1] // 参数值
+let theoption = program.args[1] // 参数值
 let params = program.args.slice(1) // 参数数组
 
 if (!thecmd || thecmd === '-h') {
@@ -83,48 +82,22 @@ if (!thecmd || thecmd === '-h') {
 
 if (!commandTypeObject.hasOwnProperty(thecmd)) {
   error('the command you input is invalid, you could get the surpported commands through $ github issues -h')
+  process.exit()
 }
 
-
-
-switch (thecmd) {
-  case 'ls':
-    
-    break
-  case 'create':
-    askquestion([{
-      type: 'input',
-      name: 'ownername',
-      message: 'please input the ownername of the repository:' 
-    }], function (nameanswers: any) {
-      repos.getReposForUser(nameanswers.ownername, function (resdata: any) {
-        let targetUserRepos = resdata.map((item: any) => {
-          return item.name
-        })
-        askquestion([{
-          type: 'list',
-          name: 'reposname',
-          message: 'please select a repository of this owner',
-          choices: targetUserRepos
-        }, {
-          type: 'input',
-          name: 'issuetitle',
-          message: 'please input a title of this issue:'
-        }, {
-          type: 'editor',
-          name: 'issuecontent',
-          message: 'please input the content of this issue:'
-        }], function (issueanswers: any) {
-          issues.create({
-            ownername: nameanswers.ownername,
-            reposname: issueanswers.reposname,
-            data: {
-              title: issueanswers.issuetitle,
-              body: issueanswers.issuecontent
-            }
-          })
-        })
-      })
-    })
-    break
+if (!theoption) {
+  let childOptions = commandTypeObject[thecmd].childOptions
+  error('you need add a child option to this command type')
+  mainTitle('the supported child options as follows:')
+  command()
+  Object.keys(childOptions).forEach((item: any) => {
+    command(`${item}  ---  ${childOptions[item]}`)
+  })
+  command()
+  describe('list all the issues of a repository')
+  example('$ github issues ls -r')
+  process.exit()
 }
+
+// execute the function corresponding to the command and the childoption
+issueStrategies[thecmd][theoption]()

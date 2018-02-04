@@ -3,125 +3,109 @@
 import * as program from 'commander'
 
 import { mainTitle, command, example, describe, error } from './tools/output'
-import pr from '../lib/action/pullrequest'
-import repos from '../lib/action/repos'
-import spinner from '../lib/tools/spinner'
-import askquestion from '../lib/tools/askQuestion';
-import { selectRepos } from '../lib/tools/verification';
-import shell from '../lib/tools/createshell'
+import { prStrategies } from '../lib/action/pullrequest'
+
+const commandTypeObject: {[key: string]: any} = {
+  'ls': {
+    message: 'get list data about pull request(获取pull request列表数据操作)',
+    childOptions: {
+      '-r': 'list pull requests for a repository',
+      '-p': 'list all the reviews of a pull request',
+      '-c': 'list comments on a pull request',
+      '-cw': 'list comments of a review of a pull request',
+      '-cr': 'list comments in a repository pulls',
+      '-rp': 'list review requests of a pull request'
+    }
+  },
+  'cr': {
+    message: 'create actions about pull request(创建关于pull request数据的操作)',
+    childOptions: {
+      '-p': 'create a pull request',
+      '-pr': 'create a pull request review',
+      '-c': 'create a comment for an pull request',
+      '－rp': 'create a review request for a pull request'
+    }
+  },
+  'et': {
+    message: 'edit pull request actions(编辑pull request数据)',
+    childOptions: {
+      '-p': 'edit a pull request',
+      '-c': 'edit a comment for repository pulls'
+    }
+  },
+  'rm': {
+    message: 'delete pull request actions(删除pull request数据)',
+    childOptions: {
+      '-v': 'delete reviews of a pull request',
+      '-c': 'delete a comment of repository pulls',
+      '-r': 'delete review request of a pull request'
+    }
+  },
+  'mr': {
+    message: 'merge pull request actions(合并pull request请求)'
+  },
+  'st': {
+    message: 'submit pull request review'
+  },
+  'ds': {
+    message: 'dismiss a pull request review'
+  }
+}
 
 program
   .version(require('../package.json').version)
   .usage('<command> [options]')
   .parse(process.argv)
 
-const commandTypes = [
-  'create',
-  'listall'
-]
 program.on('--help', function () {
   mainTitle('Commands:')
   command()
-  commandTypes.forEach((item) => {
-    command(item)
+  Object.keys(commandTypeObject).forEach((item: any) => {
+    command(`$ github pr ${item} --- ${commandTypeObject[item].message}`)
+    let childOptions = commandTypeObject[item].childOptions
+    if (childOptions) {
+      describe('the supported child options for this command as follows:')
+      Object.keys(childOptions).forEach((optionItem: any) => {
+        command(`  ${optionItem} --- ${childOptions[optionItem]}`)
+      })
+    }
   })
-
   mainTitle('use examples:')
   example()
-  describe('list all the issues')
-  example('github issues listall')
+  describe('list pull requests for a repository')
+  example('github pr ls -r')
   example()
 })
 
 let thecmd = program.args[0] // 命令类型
-let theparam = program.args[1] // 参数值
+let theoption = program.args[1] // 参数值
 let params = program.args.slice(1) // 参数数组
 
 if (!thecmd || thecmd === '-h') {
   program.help()
 }
 
-if (commandTypes.indexOf(thecmd) < 0) {
-  error('the command you input is invalid, you could get the surpported commands through $ github issues -h')
+if (!commandTypeObject.hasOwnProperty(thecmd)) {
+  error('the command you input is invalid, you could get the surpported commands through $ github pr -h')
 }
 
-switch (thecmd) {
-  case 'listall' :
-    askquestion([{
-      type: 'input',
-      name: 'ownername',
-      message: 'please input the ownername of the repository:' 
-    }], function (nameanswers: any) {
-      repos.getReposForUser(nameanswers.ownername, function (resdata: any) {
-        let targetUserRepos = resdata.map((item: any) => {
-          return item.name
-        })
-        askquestion([{
-          type: 'list',
-          name: 'reposname',
-          message: 'please select a repository of this owner',
-          choices: targetUserRepos
-        }], function (answers: any) {
-          pr.listAll({
-            ownername: nameanswers.ownername,
-            reposname: answers.reposname
-          })
-        })
-      })
+let commandObject = commandTypeObject[thecmd]
+if (commandObject.childOptions) {
+  if (!theoption) {
+    let childOptions = commandObject.childOptions
+    error('you need add a child option to this command type')
+    mainTitle('the supported child options as follows:')
+    command()
+    Object.keys(childOptions).forEach((item: any) => {
+      command(`${item}  ---  ${childOptions[item]}`)
     })
-    break
-  case 'create' :
-    askquestion([{
-      type: 'input',
-      name: 'ownername',
-      message: 'please input the ownername of the repository:' 
-    }], function (nameanswers: any) {
-      repos.getReposForUser(nameanswers.ownername, function (resdata: any) {
-        let targetUserRepos = resdata.map((item: any) => {
-          return item.name
-        })
-        askquestion([{
-          type: 'list',
-          name: 'reposname',
-          message: 'please select a repository of this owner',
-          choices: targetUserRepos
-        }, {
-          type: 'input',
-          name: 'prtitle',
-          message: 'please input a title of this pullrequest:'
-        }, {
-          type: 'input',
-          name: 'prhead',
-          message: 'please input the name of your branch you want to pull'
-        }, {
-          type: 'editor',
-          name: 'prcontent',
-          message: 'please input the content of this issue:'
-        }], function (pranswers: any) {
-          repos.getBranches({ownername: nameanswers.ownername, reposname: pranswers.reposname}, function (resdata: any) {
-            let targetBranches = resdata.map((item: any) => {
-              return item.name
-            })
-            askquestion([{
-              type: 'list',
-              name: 'branchname',
-              message: 'please select a branch you want your changes pulled into:',
-              choices: targetBranches
-            }], (branchanswer: any) => {
-              pr.create({
-                ownername: nameanswers.ownername,
-                reposname: pranswers.reposname,
-                data: {
-                  title: pranswers.prtitle,
-                  head: pranswers.prhead,
-                  base: branchanswer.branchname,
-                  body: pranswers.prcontent
-                }
-              })
-            })
-          })
-        })
-      })
-    })
-    break
+    command()
+    describe('list all the pull request of a repository')
+    example('$ github pr ls -r')
+    process.exit()
+  } else {
+    prStrategies[thecmd][theoption]()
+  }
+} else {
+  prStrategies[thecmd]()
 }
