@@ -61,7 +61,7 @@ program.on('--help', function () {
   mainTitle('Commands:')
   command()
   Object.keys(commandTypeObject).forEach((item: any) => {
-    command(`$ github pr ${item} --- ${commandTypeObject[item].message}`)
+    command(`$ gh pr ${item} --- ${commandTypeObject[item].message}`)
     let childOptions = commandTypeObject[item].childOptions
     if (childOptions) {
       describe('the supported child options for this command as follows:')
@@ -73,7 +73,7 @@ program.on('--help', function () {
   mainTitle('use examples:')
   example()
   describe('list pull requests for a repository')
-  example('github pr ls -r')
+  example('gh pr ls -r')
   example()
 })
 
@@ -86,7 +86,7 @@ if (!thecmd || thecmd === '-h') {
 }
 
 if (!commandTypeObject.hasOwnProperty(thecmd)) {
-  error('the command you input is invalid, you could get the surpported commands through $ github pr -h')
+  error('the command you input is invalid, you could get the surpported commands through $ gh pr -h')
 }
 
 let commandObject = commandTypeObject[thecmd]
@@ -101,7 +101,7 @@ if (commandObject.childOptions) {
     })
     command()
     describe('list all the pull request of a repository')
-    example('$ github pr ls -r')
+    example('$ gh pr ls -r')
     process.exit()
   } else {
     prStrategies[thecmd][theoption]()

@@ -52,7 +52,7 @@ program.on('--help', function () {
   mainTitle('Commands:')
   command()
   Object.keys(commandTypeObject).forEach((commandItem) => {
-    command(`$ github issues ${commandItem} --- ${commandTypeObject[commandItem].message}`)
+    command(`$ gh iu ${commandItem} --- ${commandTypeObject[commandItem].message}`)
     describe('the supported child options for this command as follows:')
     let childOptions = commandTypeObject[commandItem].childOptions
     Object.keys(childOptions).forEach((item) => {
@@ -66,9 +66,9 @@ program.on('--help', function () {
   mainTitle('use examples:')
   example()
   describe('list all the issues of a repository')
-  example('$ github issues ls -r')
+  example('$ gh iu ls -r')
   describe('list all the issues of a repository of a new github user')
-  example('$ github issues ls -r -n username(username is optional)')
+  example('$ gh iu ls -r -n username(username is optional)')
   example()
 })
 
@@ -81,7 +81,7 @@ if (!thecmd || thecmd === '-h') {
 }
 
 if (!commandTypeObject.hasOwnProperty(thecmd)) {
-  error('the command you input is invalid, you could get the surpported commands through $ github issues -h')
+  error('the command you input is invalid, you could get the surpported commands through $ gh issues -h')
   process.exit()
 }
 
@@ -95,7 +95,7 @@ if (!theoption) {
   })
   command()
   describe('list all the issues of a repository')
-  example('$ github issues ls -r')
+  example('$ gh iu ls -r')
   process.exit()
 }
 

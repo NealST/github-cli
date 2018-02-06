@@ -11,13 +11,13 @@
     "prepublish": "npm run clean && npm run build"
   },
   "bin": {
-    "github": "./bin/index.js",
-    "github_repos": "./bin/github_repos.js",
-    "github_issues": "./bin/github_issues.js",
-    "github_pr": "./bin/github_pullrequest.js",
-    "github_react": "./bin/github_reaction.js",
-    "github_me": "./bin/github_users.js",
-    "github_search": "./bin/github_search.js"
+    "gh": "./bin/index.js",
+    "gh_rs": "./bin/github_repos.js",
+    "gh_iu": "./bin/github_issues.js",
+    "gh_pr": "./bin/github_pullrequest.js",
+    "gh_rt": "./bin/github_reaction.js",
+    "gh_us": "./bin/github_users.js",
+    "gh_sr": "./bin/github_search.js"
   },
   "dependencies": {
     "axios": "^0.17.1",

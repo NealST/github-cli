@@ -2,7 +2,7 @@ import { request, thedomain } from './request';
 import askquestion from './askQuestion';
 import spinner from './spinner'
 import { saveInfo, getInfo } from './saveInfo';
-import repos from '../action/repos'
+import { reposActions } from '../action/repos';
 
 // 获取想要操作的Github用户名
 const getTargetUserName = function (message: string, fn?: Function, isNeedAsk: boolean = true) {
@@ -142,38 +142,42 @@ export const selectRepos = function (fn: Function, isNeedTarget: boolean = false
   }
   if (isNeedTarget) {
     getUserName(function (targetName: string) {
-      repos.getReposForUser(targetName, function (reposdataList: any) {
+      reposActions.getReposForUser(targetName, function (reposdataList: any) {
         selectReposList(reposdataList, targetName)
       })
     }, true)
   } else {
-    repos.getAll(function (reposdataList: any) {
+    reposActions.getAll(function (reposdataList: any) {
       selectReposList(reposdataList)
     })
   }
 }
 
 // 获取个人的access-token
-export const getToken = function (fn: Function) {
-  if (process.env.githubToken) {
-    fn()
-  } else {
-    getInfo().then((res: any) => {
-      if (!res.githubToken) {
-        askquestion([{
-          type: 'input',
-          name: 'accesstoken',
-          message: 'please input your github access token:'
-        }], function (answers: any) {
-          let thetoken = answers.accesstoken
-          process.env.githubToken = thetoken
-          saveInfo({githubToken: thetoken})
-          fn()
-        })
-      } else {
-        process.env.githubToken = res.githubToken
-        fn()
-      }
-    })
-  }
+export const getToken = function () {
+  return (new Promise(function(resolve, reject) {
+    if (process.env.githubToken) {
+      resolve()
+    } else {
+      getInfo().then((res: any) => {
+        if (!res.githubToken) {
+          askquestion([{
+            type: 'input',
+            name: 'accesstoken',
+            message: 'please input your github access token:'
+          }], function (answers: any) {
+            let thetoken = answers.accesstoken
+            process.env.githubToken = thetoken
+            saveInfo({githubToken: thetoken})
+            resolve()
+          })
+        } else {
+          process.env.githubToken = res.githubToken
+          resolve()
+        }
+      })
+    }
+  })).catch((err: any) => {
+    console.log(err)
+  })
 }

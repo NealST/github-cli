@@ -3,68 +3,69 @@ import { getToken, selectRepos } from '../tools/verification';
 import askquestion from '../tools/askQuestion';
 import createTabale from '../tools/tableShow';
 import getHyperlinkText from '../tools/hyperlinker';
+import promiseCompose from '../tools/promiseCompose';
 
 export const prActions = {
-  // 列出所有的pull request
-  listForRepos (listOptions: any, fn?: Function) {
-    getToken(function () {
-      request(`/repos/${listOptions.ownername}/${listOptions.reposname}/pulls`, 'get', {}, {
+  // list all the pull requests of a repository
+  listForRepos (listOptions: any) {
+    return promiseCompose([getToken, () => {
+      return request(`/repos/${listOptions.ownername}/${listOptions.reposname}/pulls`, 'get', {}, {
         headers: {
           'Authorization': `token ${process.env.githubToken}`,
           'Accept': previewAccept
         }
       }).then((res: any) => {
         console.log(res.data)
-        fn && fn(res.data)
+        return res.data
       })
-    })
+    }])
   },
   // create a pull request
   createPr (createOptions: any) {
-    getToken(function () {
-      request(`/repos/${createOptions.ownername}/${createOptions.reposname}/pulls`, 'post', createOptions.data, {
+    return promiseCompose([getToken, () => {
+      return request(`/repos/${createOptions.ownername}/${createOptions.reposname}/pulls`, 'post', createOptions.data, {
         headers: {
             'Authorization': `token ${process.env.githubToken}`,
             'Accept': previewAccept
           }  
       }).then((res: any) => {
         console.log(res.data)
+        return res.data
       })
-    })
+    }])
   },
   // edit a pull request
   updatePr (updateOptions: any) {
-    getToken(function () {
-      request(`/repos/${updateOptions.ownername}/${updateOptions.reposname}/pulls/${updateOptions.number}`, 'post', updateOptions.data, {
+    return promiseCompose([getToken, () => {
+      return request(`/repos/${updateOptions.ownername}/${updateOptions.reposname}/pulls/${updateOptions.number}`, 'post', updateOptions.data, {
         headers: {
           'Authorization': `token ${process.env.githubToken}`,
           'Accept': previewAccept
         }  
       }).then((res: any) => {
         console.log(res.data)
+        return res.data
       })
-    })
+    }])
   },
-  // 判断是否合并了pull request
-  isPrMerged (infoOptions: any, fn?: Function) {
-    getToken(function () {
-      request(`/repos/${infoOptions.ownername}/${infoOptions.reposname}/pulls/${infoOptions.number}/merge`, 'get', {}, {
+  // check whether a pull request is merged
+  isPrMerged (infoOptions: any) {
+    return promiseCompose([getToken, () => {
+      return request(`/repos/${infoOptions.ownername}/${infoOptions.reposname}/pulls/${infoOptions.number}/merge`, 'get', {}, {
         headers: {
             'Authorization': `token ${process.env.githubToken}`,
             'Accept': previewAccept
           }  
-        }).then((res: any) => {
-          console.log(res.data)
-          fn && fn(res.data)
-        }).catch((err: any) => {
-          console.log(err)
+      }).then((res: any) => {
+        console.log(res.data)
+        return res.data
       })
-    })
+    }])
   },
-  // 合并一个pull request
+  // merge a pull request
   mergePr (mergeOptions: any, fn?: Function) {
-    getToken(function () {
-      Promise.all(mergeOptions.numbers.map((item: any) => {
+    return promiseCompose([getToken, () => {
+      return Promise.all(mergeOptions.numbers.map((item: any) => {
         return request(`/repos/${mergeOptions.ownername}/${mergeOptions.reposname}/pulls/${item}/merge`, 'put', mergeOptions.data, {
           headers: {
               'Authorization': `token ${process.env.githubToken}`,
@@ -72,10 +73,9 @@ export const prActions = {
             }  
           })
       })).then((res: any) => {
-        console.log(res.data)
-        fn && fn(res.data)
+        return res
       })
-    })
+    }])
   },
   // list reviews of a pull request
   listPrReviews (listOptions: any) {
@@ -87,76 +87,81 @@ export const prActions = {
   },
   // delete reviews of a pull request
   deletePrReviews (deleteOptions: any) {
-    getToken(() => {
-      Promise.all(deleteOptions.ids.map((item: any) => {
+    return promiseCompose([getToken, () => {
+      return Promise.all(deleteOptions.ids.map((item: any) => {
         return request(`/repos/${deleteOptions.ownername}/${deleteOptions.reposname}/pulls/${deleteOptions.number}/reviews/${item}`, 'delete', {}, {
           headers: {
             'Authorization': `token ${process.env.githubToken}`
           } 
         })
       })).then((res: any) => {
-        console.log(res.data)
-        return res.data
+        console.log(res)
+        return res
       })
-    })
+    }])
   },
   // get comments of a review of a pull request
   listCommentsForReview (getOptions: any) {
-    getToken(() => {
-      request(`/repos/${getOptions.ownername}/${getOptions.reposname}/pulls/${getOptions.number}/reviews/${getOptions.id}/comments`, 'get', {}, {
+    return promiseCompose([getToken, () => {
+      return request(`/repos/${getOptions.ownername}/${getOptions.reposname}/pulls/${getOptions.number}/reviews/${getOptions.id}/comments`, 'get', {}, {
         headers: {
           'Authorization': `token ${process.env.githubToken}`
         }  
       }).then((res: any) => {
         console.log(res.data)
+        return res.data
       })
-    })
+    }])
   },
   // create a pull request review
   createPrReview (createOptions: any) {
-    getToken(() => {
-      request(`/repos/${createOptions.ownername}/${createOptions.reposname}/pulls/${createOptions.number}/reviews`, 'post', createOptions.data, {
+    return promiseCompose([getToken, () => {
+      return request(`/repos/${createOptions.ownername}/${createOptions.reposname}/pulls/${createOptions.number}/reviews`, 'post', createOptions.data, {
         headers: {
           'Authorization': `token ${process.env.githubToken}`
         }  
       }).then((res: any) => {
         console.log(res.data)
+        return res.data
       })
-    })
+    }])
   },
   // submit pull request review
   submitPrReview (submitOptions: any) {
-    getToken(() => {
-      request(`/repos/${submitOptions.ownername}/${submitOptions.reposname}/pulls/${submitOptions.number}/reviews/${submitOptions.id}/events`, 'post', submitOptions.data, {
+    return promiseCompose([getToken, () => {
+      return request(`/repos/${submitOptions.ownername}/${submitOptions.reposname}/pulls/${submitOptions.number}/reviews/${submitOptions.id}/events`, 'post', submitOptions.data, {
         headers: {
           'Authorization': `token ${process.env.githubToken}`
         }  
       }).then((res: any) => {
         console.log(res.data)
+        return res.data
       })
-    })
+    }])
   },
   // get a single pull request
   getSinglePr (getOptions: any) {
-    request(`/repos/${getOptions.ownername}/${getOptions.reposname}/pulls/${getOptions.number}`, 'get', {}, {
+    return request(`/repos/${getOptions.ownername}/${getOptions.reposname}/pulls/${getOptions.number}`, 'get', {}, {
       headers: {
         'Accept': 'application/vnd.github.v3.diff'
       }  
     }).then((res: any) => {
       console.log(res.data)
+      return res.data
     })
   },
   // dismiss a pull request review
   dismissPrReview (disOptions: any) {
-    getToken(() => {
-      request(`/repos/${disOptions.ownername}/${disOptions.reposname}/pulls/${disOptions.number}/reviews/${disOptions.id}/dismissals`, disOptions.data, {
+    return promiseCompose([getToken, () => {
+      return request(`/repos/${disOptions.ownername}/${disOptions.reposname}/pulls/${disOptions.number}/reviews/${disOptions.id}/dismissals`, disOptions.data, {
         headers: {
           'Authorization': `token ${process.env.githubToken}`
         }
       }).then((res: any) => {
         console.log(res.data)
+        return res.data
       })
-    })
+    }])
   },
   // list comments on a pull request
   listCommentsForPr (listOptions: any) {
@@ -179,32 +184,34 @@ export const prActions = {
   },
   // create a comment for a pull request
   createComment (createOptions: any) {
-    getToken(() => {
-      request(`/repos/${createOptions.ownername}/${createOptions.reposname}/pulls/${createOptions.number}/comments`, 'post', createOptions.data, {
+    return promiseCompose([getToken, () => {
+      return request(`/repos/${createOptions.ownername}/${createOptions.reposname}/pulls/${createOptions.number}/comments`, 'post', createOptions.data, {
         headers: {
           'Authorization': `token ${process.env.githubToken}`
         }  
       }).then((res: any) => {
         console.log(res.data)
+        return res.data
       })
-    })
+    }])
   },
   // edit a comment for repository pulls
   editComment (editOptions: any) {
-    getToken(() => {
-      request(`/repos/${editOptions.ownername}/${editOptions.reposname}/pulls/comments/${editOptions.id}`, 'patch', editOptions.data, {
+    return promiseCompose([getToken, () => {
+      return request(`/repos/${editOptions.ownername}/${editOptions.reposname}/pulls/comments/${editOptions.id}`, 'patch', editOptions.data, {
         headers: {
           'Authorization': `token ${process.env.githubToken}`
         }  
       }).then((res: any) => {
         console.log(res.data)
+        return res.data
       })
-    })
+    }])
   },
   // delete a comment of repository pulls
   deleteComment (deleteOptions: any) {
-    getToken(() => {
-      Promise.all(deleteOptions.ids.map((item: any) => {
+    return promiseCompose([getToken, () => {
+      return Promise.all(deleteOptions.ids.map((item: any) => {
         return request(`/repos/${deleteOptions.ownername}/${deleteOptions.reposname}/pulls/comments/${item}`, 'delete', {}, {
           headers: {
             'Authorization': `token ${process.env.githubToken}`
@@ -212,47 +219,51 @@ export const prActions = {
         })
       })).then((res: any) => {
         console.log(res)
+        return res.data
       })
-    })
+    }])
   },
   // list review requests
   listReviewRequests (listOptions: any) {
-    getToken(() => {
-      request(`/repos/${listOptions.ownername}/${listOptions.reposname}/pulls/${listOptions.number}/requested_reviewers`, 'get', {}, {
+    return promiseCompose([getToken, () => {
+      return request(`/repos/${listOptions.ownername}/${listOptions.reposname}/pulls/${listOptions.number}/requested_reviewers`, 'get', {}, {
         headers: {
           'Authorization': `token ${process.env.githubToken}`,
           'Accept': 'application/vnd.github.thor-preview+json'
         }  
       }).then((res: any) => {
         console.log(res.data)
+        return res.data
       })
-    })
+    }])
   },
   // create a review request for a pull request
   createReviewRequest (createOptions: any) {
-    getToken(() => {
-      request(`/repos/${createOptions.ownername}/${createOptions.reposname}/pulls/${createOptions.number}/requested_reviewers`, 'post', createOptions.data, {
+    return promiseCompose([getToken, () => {
+      return request(`/repos/${createOptions.ownername}/${createOptions.reposname}/pulls/${createOptions.number}/requested_reviewers`, 'post', createOptions.data, {
         headers: {
           'Authorization': `token ${process.env.githubToken}`,
           'Accept': 'application/vnd.github.thor-preview+json'
         }  
       }).then((res: any) => {
         console.log(res.data)
+        return res.data
       })
-    })
+    }])
   },
   // delete review request of a pull request
   deleteReviewRequest (deleteOptions: any) {
-    getToken(() => {
-      request(`/repos/${deleteOptions.ownername}/${deleteOptions.reposname}/pulls/${deleteOptions.number}/requested_reviewers`, 'delete', deleteOptions.data, {
+    return promiseCompose([getToken, () => {
+      return request(`/repos/${deleteOptions.ownername}/${deleteOptions.reposname}/pulls/${deleteOptions.number}/requested_reviewers`, 'delete', deleteOptions.data, {
         headers: {
           'Authorization': `token ${process.env.githubToken}`,
           'Accept': 'application/vnd.github.thor-preview+json'
         }  
       }).then((res: any) => {
         console.log(res.data)
+        return res.data
       })
-    })
+    }])
   }
 }
 
@@ -261,7 +272,7 @@ const selectPr = function (fn: Function, type: string = 'list') {
     prActions.listForRepos({
       ownername: targetName,
       reposname: reposname
-    }, function (resdata: any) {
+    }).then(function (resdata: any) {
       let dataTable: any = createTabale({
         head: ['number', 'state', 'title', 'body', 'detailUrl']
       })

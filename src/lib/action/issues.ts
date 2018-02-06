@@ -3,34 +3,37 @@ import { getToken, selectRepos } from '../tools/verification';
 import askquestion from '../tools/askQuestion';
 import createTabale from '../tools/tableShow';
 import getHyperlinkText from '../tools/hyperlinker';
+import promiseCompose from '../tools/promiseCompose';
 const acceptType = 'application/vnd.github.jean-grey-preview+json'
 
 export const issueActions = {
   // list issues
   listForUser (listOptions: any) {
-    getToken(function () {
-      request(`/user/issues`, 'get', listOptions, {
+    return promiseCompose([getToken, () => {
+      return request(`/user/issues`, 'get', listOptions, {
         headers: {
           'Authorization': `token ${process.env.githubToken}`,
           'Accept': acceptType
         }
       }).then((res: any) => {
         console.log(res.data)
+        return res.data
       })
-    })
+    }])
   },
   // create an issue
   create (createOptions: any) {
-    getToken(function () {
-      request(`/repos/${createOptions.ownername}/${createOptions.reposname}/issues`, 'post', createOptions.data, {
+    return promiseCompose([getToken, () => {
+      return request(`/repos/${createOptions.ownername}/${createOptions.reposname}/issues`, 'post', createOptions.data, {
         headers: {
           'Authorization': `token ${process.env.githubToken}`,
-           'Accept': acceptType
-          }  
+          'Accept': acceptType
+        }  
       }).then((res: any) => {
           console.log(res.data)
+          return res.data
       })
-    })
+    }])
   },
   // list issues for a repository
   listForRepos (ownername: string, reposlist: Array<string>, requestdata: any) {
@@ -39,12 +42,15 @@ export const issueActions = {
         headers: {
           'Accept': acceptType
         }  
+      }).then((res: any) => {
+        console.log(res.data)
+        return res.data
       })
     }))
   },
   // get a single issue
   getSingleIssue (getOptions: any) {
-    request(`/repos/${getOptions.ownername}/${getOptions.reposname}/issues/${getOptions.number}`, 'get', {}, {
+    return request(`/repos/${getOptions.ownername}/${getOptions.reposname}/issues/${getOptions.number}`, 'get', {}, {
       headers: {
         'Accept': acceptType
       }  
@@ -54,16 +60,17 @@ export const issueActions = {
   },
   // edit an issue
   editIssue (editOptions: any) {
-    getToken(() => {
-      request(`/repos/${editOptions.ownername}/${editOptions.reposname}/issues/${editOptions.number}`, 'patch', editOptions.data, {
+    return promiseCompose([getToken, () => {
+      return request(`/repos/${editOptions.ownername}/${editOptions.reposname}/issues/${editOptions.number}`, 'patch', editOptions.data, {
         headers: {
           'Accept': acceptType,
           'Authorization': `token ${process.env.githubToken}`
         }  
       }).then((res: any) => {
         console.log(res.data)
+        return res.data
       })
-    })
+    }])
   },
   // list assignees
   listAssignees (listOptions: any) {
@@ -74,40 +81,44 @@ export const issueActions = {
   },
   // check if a user has permission to be assigned to an issue in this repository
   checkAssignee (checkOptions: any) {
-    request(`/repos/${checkOptions.ownername}/${checkOptions.reposname}/assignees/${checkOptions.assigneeName}`, 'get', {})
+    return request(`/repos/${checkOptions.ownername}/${checkOptions.reposname}/assignees/${checkOptions.assigneeName}`, 'get', {})
       .then((res: any) => {
         console.log(res.data)
+        return res.data
       })
   },
   // add assignees to an issue
   addAssignees (addOptions: any) {
-    getToken(() => {
-      request(`/repos/${addOptions.ownername}/${addOptions.reposname}/issues/${addOptions.number}/assignees`, 'post', addOptions.data, {
+    return promiseCompose([getToken, () => {
+      return request(`/repos/${addOptions.ownername}/${addOptions.reposname}/issues/${addOptions.number}/assignees`, 'post', addOptions.data, {
         headers: {
           'Authorization': `token ${process.env.githubToken}`
         }  
       }).then((res: any) => {
         console.log(res.data)
+        return res.data
       })
-    })
+    }])
   },
   // delete an assignees from an issue
   deleteAssignees (deleteOptions: any) {
-    getToken(() => {
-      request(`/repos/${deleteOptions.ownername}/${deleteOptions.reposname}/issues/${deleteOptions.number}/assignees`, 'delete', deleteOptions.data, {
+    return promiseCompose([getToken, () => {
+      return request(`/repos/${deleteOptions.ownername}/${deleteOptions.reposname}/issues/${deleteOptions.number}/assignees`, 'delete', deleteOptions.data, {
         headers: {
           'Authorization': `token ${process.env.githubToken}`
         }  
       }).then((res: any) => {
         console.log(res.data)
+        return res.data
       })
-    })
+    }])
   },
   // list comments on an issue
   listComments (listOptions: any) {
-    request(`/repos/${listOptions.ownername}/${listOptions.reposname}/issues/${listOptions.number}/comments`, 'get', {})
+    return request(`/repos/${listOptions.ownername}/${listOptions.reposname}/issues/${listOptions.number}/comments`, 'get', {})
       .then((res: any) => {
         console.log(res.data)
+        return res.data
       })
   },
   // list comments in a repository
@@ -120,34 +131,36 @@ export const issueActions = {
   },
   // create a comment
   createComment (createOptions: any) {
-    getToken(() => {
-      request(`/repos/${createOptions.ownername}/${createOptions.reposname}/issues/${createOptions.number}/comments`, 'post', createOptions.data, {
+    return promiseCompose([getToken, () => {
+      return request(`/repos/${createOptions.ownername}/${createOptions.reposname}/issues/${createOptions.number}/comments`, 'post', createOptions.data, {
         headers: {
           'Authorization': `token ${process.env.githubToken}`,
           'Accept': 'application/vnd.github.machine-man-preview'
         }  
       }).then((res: any) => {
         console.log(res.data)
+        return res.data
       })
-    })
+    }])
   },
   // edit a comment
   editComment (editOptions: any) {
-    getToken(() => {
-      request(`/repos/${editOptions.ownername}/${editOptions.reposname}/issues/comments/${editOptions.id}`, 'patch', editOptions.data, {
+    return promiseCompose([getToken, () => {
+      return request(`/repos/${editOptions.ownername}/${editOptions.reposname}/issues/comments/${editOptions.id}`, 'patch', editOptions.data, {
         headers: {
           'Authorization': `token ${process.env.githubToken}`,
           'Accept': 'application/vnd.github.machine-man-preview'
         }  
       }).then((res: any) => {
         console.log(res.data)
+        return res.data
       })
-    })
+    }])
   },
   // delete a comment
   deleteComment (deleteOptions: any) {
-    getToken(() => {
-      Promise.all(deleteOptions.ids.map((item: any) => {
+    return promiseCompose([getToken, () => {
+      return Promise.all(deleteOptions.ids.map((item: any) => {
         return request(`/repos/${deleteOptions.ownername}/${deleteOptions.reposname}/issues/comments/${item}`, 'delete', {}, {
           headers: {
             'Authorization': `token ${process.env.githubToken}`,
@@ -156,34 +169,37 @@ export const issueActions = {
         })
       })).then((res: any) => {
         console.log(res.data)
+        return res.data
       })
-    })
+    }])
   },
   // add labels to an issue
   addLabelsForIssue (addOptions: any) {
-    getToken(() => {
-      request(`/repos/${addOptions.ownername}/${addOptions.reposname}/issues/${addOptions.number}/labels`, 'post', addOptions.data, {
-        headers: {
-          'Authorization': `token ${process.env.githubToken}`,
-          'Accept': acceptType
-        }  
-      }).then((res: any) => {
-        console.log(res.data) 
-      })
-    })
-  },
-  // replace all labels for an issue
-  replaceLabelsForIssue (replaceOptions: any) {
-    getToken(() => {
-      request(`/repos/${replaceOptions.ownername}/${replaceOptions.reposname}/issues/${replaceOptions.number}/labels`, 'put', replaceOptions.data, {
+    return promiseCompose([getToken, () => {
+      return request(`/repos/${addOptions.ownername}/${addOptions.reposname}/issues/${addOptions.number}/labels`, 'post', addOptions.data, {
         headers: {
           'Authorization': `token ${process.env.githubToken}`,
           'Accept': acceptType
         }  
       }).then((res: any) => {
         console.log(res.data)
+        return res.data
       })
-    })
+    }])
+  },
+  // replace all labels for an issue
+  replaceLabelsForIssue (replaceOptions: any) {
+    return promiseCompose([getToken, () => {
+      return request(`/repos/${replaceOptions.ownername}/${replaceOptions.reposname}/issues/${replaceOptions.number}/labels`, 'put', replaceOptions.data, {
+        headers: {
+          'Authorization': `token ${process.env.githubToken}`,
+          'Accept': acceptType
+        }  
+      }).then((res: any) => {
+        console.log(res.data)
+        return res.data
+      })
+    }])
   },
   // list labels on an issue
   listLabelsForIssue (listOptions: any) {
@@ -198,8 +214,8 @@ export const issueActions = {
   },
   // remove a label from an issue
   removeLabelForIssue (deleteOptions: any) {
-    getToken(() => {
-      Promise.all(deleteOptions.labelNames.map((item: any) => {
+    return promiseCompose([getToken, () => {
+      return Promise.all(deleteOptions.labelNames.map((item: any) => {
         return request(`/repos/${deleteOptions.ownername}/${deleteOptions.reposname}/issues/${deleteOptions.number}/labels/${item}`, 'delete', {}, {
           headers: {
             'Authorization': `token ${process.env.githubToken}`,
@@ -208,13 +224,14 @@ export const issueActions = {
         })
       })).then((res: any) => {
         console.log(res)
+        return res.data
       })
-    })
+    }])
   },
   // remove all labels from an issue
   removeLabelsForIssue (deleteOptions: any) {
-    getToken(() => {
-      request(`/repos/${deleteOptions.ownername}/${deleteOptions.reposname}/issues/${deleteOptions.number}/labels`, 'delete', {}, {
+    return promiseCompose([getToken, () => {
+      return request(`/repos/${deleteOptions.ownername}/${deleteOptions.reposname}/issues/${deleteOptions.number}/labels`, 'delete', {}, {
         headers: {
           'Authorization': `token ${process.env.githubToken}`,
           'Accept': acceptType
@@ -222,7 +239,7 @@ export const issueActions = {
       }).then((res: any) => {
         console.log(res)
       })
-    })
+    }])
   }
 }
 
@@ -344,7 +361,7 @@ export const issueStrategies: any = {
             }
           })
         })
-       })
+      })
     },
     '-c': function () {
       selectIssue(function (ownername: string, reposname: string, issuenumber: number) {

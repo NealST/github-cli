@@ -13,7 +13,7 @@ updateNotifier({pkg}).notify()
 
 // 支持的命令类型
 const commandTypeObject: { [key: string]: any } = {
-  'issues': {
+  'iu': {
     message: 'issues action(issues操作)',
     fontstext: 'issues'
   },
@@ -21,19 +21,19 @@ const commandTypeObject: { [key: string]: any } = {
     message: 'pull request action(pull request操作)',
     fontstext: 'pull requests'
   },
-  'react': {
+  'rt': {
     message: 'emojis action(表情回应)',
     fontstext: 'reactions'
   },
-  'repos': {
+  'rs': {
     message: 'repository action(仓库操作)',
     fontstext: 'repositories'
   },
-  'search': {
+  'sc': {
     message: 'search action(搜索操作)',
     fontstext: 'search'
   },
-  'users': {
+  'us': {
     message: 'personal user action(个人用户操作)',
     fontstext: 'users'
   }
@@ -48,7 +48,7 @@ program.on('--help', function() {
   mainTitle('Commands:')
   command()
   Object.keys(commandTypeObject).forEach((item) => {
-    command(`$ github ${item} --- ${commandTypeObject[item].message}`)
+    command(`$ gh ${item} --- ${commandTypeObject[item].message}`)
   })
   command()
 
@@ -56,7 +56,7 @@ program.on('--help', function() {
   example()
   Object.keys(commandTypeObject).forEach((item) => {
     describe(`# look help for ${item} action`)
-    example(`$ github ${item} -h`)
+    example(`$ gh ${item} -h`)
   })
 })
 
@@ -68,13 +68,18 @@ if (!thecommand || thecommand === '-h') {
 }
 
 if (!commandTypeObject.hasOwnProperty(thecommand)) {
-  error('the command you input is invalid,you could look for surpported commands through $ github -h')
+  error('the command you input is invalid,you could look for surpported commands through $ gh -h')
+}
+
+if (args.indexOf('-n') > 0) {
+  // if -n option exist, it indicate that you want do actions at another github user namespace
+  process.env.githubUserMode = 'target'
 }
 
 // 子命令标题
 textFonts(commandTypeObject[thecommand].fontstext)
 
-let bin = `github_${thecommand}`
+let bin = `gh_${thecommand}`
 let binFilePath = path.join(__dirname, bin)
 let exists = fs.existsSync
 
