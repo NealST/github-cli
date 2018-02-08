@@ -1,7 +1,7 @@
 import { previewAccept, request } from '../tools/request';
 import { getToken, selectRepos } from '../tools/verification';
 import askquestion from '../tools/askQuestion';
-import createTabale from '../tools/tableShow';
+import createTable from '../tools/tableShow';
 import getHyperlinkText from '../tools/hyperlinker';
 import promiseCompose from '../tools/promiseCompose';
 
@@ -273,7 +273,7 @@ const selectPr = function (fn: Function, type: string = 'list') {
       ownername: targetName,
       reposname: reposname
     }).then(function (resdata: any) {
-      let dataTable: any = createTabale({
+      let dataTable: any = createTable({
         head: ['number', 'state', 'title', 'body', 'detailUrl']
       })
       resdata.forEach((item: any) => {
@@ -328,7 +328,7 @@ export const prStrategies: {[key: string]: any} = {
           reposname: reposname,
           number: prnumber
         }).then((resdata: any) => {
-          let dataTable: any = createTabale({
+          let dataTable: any = createTable({
             head: ['id', 'state', 'body', 'detailUrl']
           })
           resdata.forEach((item: any) => {
@@ -507,7 +507,7 @@ export const prStrategies: {[key: string]: any} = {
           ownername: targetName,
           reposname: reposname
         }).then((resdata: any) => {
-          let dataTable: any = createTabale({
+          let dataTable: any = createTable({
             head: ['id', 'content', 'detailUrl']
           })
           resdata.forEach((item: any) => {
@@ -544,7 +544,7 @@ export const prStrategies: {[key: string]: any} = {
           reposname: reposname,
           number: prnumber
         }).then((resdata: any) => {
-          let dataTable: any = createTabale({
+          let dataTable: any = createTable({
             head: ['id', 'body', 'state', 'detailUrl']
           })
           resdata.forEach((item: any) => {
@@ -574,7 +574,7 @@ export const prStrategies: {[key: string]: any} = {
           ownername: targetName,
           reposname: reposname
         }).then((resdata: any) => {
-          let dataTable: any = createTabale({
+          let dataTable: any = createTable({
             head: ['id', 'content', 'detailUrl']
           })
           resdata.forEach((item: any) => {
@@ -633,7 +633,7 @@ export const prStrategies: {[key: string]: any} = {
         reposname: reposname,
         number: prnumber
       }).then((resdata: any) => {
-        let dataTable: any = createTabale({
+        let dataTable: any = createTable({
           head: ['id', 'content', 'state', 'detaiUrl']
         })
         resdata.forEach((item: any) => {
@@ -675,7 +675,7 @@ export const prStrategies: {[key: string]: any} = {
         reposname: reposname,
         number: prnumber
       }).then((resdata: any) => {
-        let dataTable: any = createTabale({
+        let dataTable: any = createTable({
           head: ['id', 'content', 'state', 'detaiUrl']
         })
         resdata.forEach((item: any) => {

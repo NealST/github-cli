@@ -3,6 +3,7 @@
 import * as program from 'commander'
 
 import { mainTitle, command, example, describe, error } from './tools/output'
+import { reposStrategies } from '../lib/action/repos';
 
 program
   .version(require('../package.json').version)
@@ -23,7 +24,8 @@ const commandTypeObject: {[key: string]: any} = {
       '-o': 'list all collaborators of a repository',
       '-y': 'list commit activity of last year',
       '-m': 'list milestones of a repository',
-      '-l': 'list all the labels of a repository'
+      '-l': 'list all the labels of a repository',
+      '-cm': 'list commit comments of a repository'
     }
   },
   'cr': {
@@ -76,9 +78,6 @@ const commandTypeObject: {[key: string]: any} = {
   },
   'fk': {
     message: 'fork a repository'
-  },
-  'mg': {
-    message: 'merge branch of a repository'
   }
 }
 program.on('--help', function () {
@@ -104,7 +103,7 @@ program.on('--help', function () {
 })
 
 let thecmd = program.args[0] // 命令类型
-let theparam = program.args[1] // 参数值
+let theoption = program.args[1] // 参数值
 let params = program.args.slice(1) // 参数数组
 
 if (!thecmd || thecmd === '-h') {
@@ -115,72 +114,26 @@ if (!commandTypeObject.hasOwnProperty(thecmd)) {
   error('the command you input is invalid, you could get the supported command through $ gh rs -h')
 }
 
-function cloneRepos (reposUrl: string) {
-  askquestion([{
-    type: 'input',
-    name: 'isNeedClone',
-    message: 'Do you need clone this repository?(y/n):'
-  }], function (answers: any) {
-    if (answers.isNeedClone === 'y') {
-      shell(`git clone ${reposUrl}`)
-    } else if (answers.isNeedClone === 'n') {
-      process.exit()
-    } else {
-      error('the selection you input is invalid')
-      process.exit()
-    }
-  })
-}
-
-switch (thecmd) {
-  case 'create' :
-    if (!theparam) {
-      // 如果没有传入仓库名，则提示用户输入
-      askquestion([{
-        type: 'input',
-        name: 'reposname',
-        message: 'please input a repository name:'
-      }], function (answers: any) {
-        repos.create([answers.reposname], function (reposdata: any) {
-          cloneRepos(reposdata.clone_url)
-        })
-      })
-    } else {
-      repos.create(params, function (reposdata: any) {
-        cloneRepos(reposdata.clone_url)
-      })
-    }
-    break
-  case 'delete' :
-    if (!theparam) {
-      selectRepos(function (reposlist: Array<string>) {
-        repos.delete(reposlist)
-      })
-    } else {
-      repos.delete(params)
-    }
-    break
-  case 'getall' :
-    repos.getAll()
-    break
-  case 'gettopics' :
-    if (!theparam) {
-      selectRepos(function (reposlist: Array<string>) {
-        repos.getTopics(reposlist)
-      })
-    } else {
-      repos.getTopics(params)
-    }
-    break
-  case 'transfer' :
-    selectRepos(function (reposlist: Array<string>) {
-      askquestion([{
-        type: 'input',
-        name: 'targetname',
-        message: 'please input the username you want transfer to:'
-      }], function (answers: any) {
-        repos.transfer(reposlist, answers.targetname)
-      })
+let commandObject = commandTypeObject[thecmd]
+if (commandObject.childOptions) {
+  if (!theoption) {
+    let childOptions = commandObject.childOptions
+    error('you need add a child option to this command type')
+    mainTitle('the supported child options as follows:')
+    command()
+    Object.keys(childOptions).forEach((item: any) => {
+      command(`${item}  ---  ${childOptions[item]}`)
     })
-    break
+    command()
+    describe('list the repositories of yourself:')
+    example('$ gh rs ls -r')
+    describe('list the repositories of another user:')
+    example('$ gh rs ls -r -n')
+    example()
+    process.exit()
+  } else {
+    reposStrategies[thecmd][theoption]()
+  }
+} else {
+  reposStrategies[thecmd]()
 }

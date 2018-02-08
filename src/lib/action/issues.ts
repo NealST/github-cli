@@ -1,7 +1,7 @@
 import {request} from '../tools/request'
 import { getToken, selectRepos } from '../tools/verification';
 import askquestion from '../tools/askQuestion';
-import createTabale from '../tools/tableShow';
+import createTable from '../tools/tableShow';
 import getHyperlinkText from '../tools/hyperlinker';
 import promiseCompose from '../tools/promiseCompose';
 const acceptType = 'application/vnd.github.jean-grey-preview+json'
@@ -36,17 +36,15 @@ export const issueActions = {
     }])
   },
   // list issues for a repository
-  listForRepos (ownername: string, reposlist: Array<string>, requestdata: any) {
-    return Promise.all(reposlist.map((item: string) => {
-      return request(`/repos/${ownername}/${item}/issues`, 'get', requestdata, {
-        headers: {
-          'Accept': acceptType
-        }  
-      }).then((res: any) => {
-        console.log(res.data)
-        return res.data
-      })
-    }))
+  listForRepos (listOptions: any) {
+    return request(`/repos/${listOptions.ownername}/${listOptions.reposname}/issues`, 'get', {}, {
+      headers: {
+        'Accept': acceptType
+      }  
+    }).then((res: any) => {
+      console.log(res.data)
+      return res.data
+    })
   },
   // get a single issue
   getSingleIssue (getOptions: any) {
@@ -245,8 +243,11 @@ export const issueActions = {
 
 const selectIssue = function (fn: Function) {
   selectRepos((reposname: string, targetName: string) => {
-    issueActions.listForRepos(targetName, [reposname], {}).then((res: any) => {
-      let dataTable: any = createTabale({
+    issueActions.listForRepos({
+      ownername: targetName,
+      reposname: reposname
+    }).then((res: any) => {
+      let dataTable: any = createTable({
         head: ['title', 'content', 'number', 'detailUrl']
       })
       res[0].forEach((item: any) => {
@@ -428,7 +429,7 @@ export const issueStrategies: any = {
           ownername: targetName,
           reposname: reposname
         }).then((resdata: any) => {
-          let dataTable: any = createTabale({
+          let dataTable: any = createTable({
             head: ['id', 'content', 'detailUrl']
           })
           resdata.forEach((item: any) => {
@@ -506,7 +507,7 @@ export const issueStrategies: any = {
           ownername: targetName,
           reposname: reposname
         }).then((resdata: any) => {
-          let dataTable: any = createTabale({
+          let dataTable: any = createTable({
             head: ['id', 'content', 'detailUrl']
           })
           resdata.forEach((item: any) => {
@@ -548,7 +549,7 @@ export const issueStrategies: any = {
               reposname: reposname,
               number: issuenumber
             }).then((resdata: any) => {
-              let dataTable: any = createTabale({
+              let dataTable: any = createTable({
                 head: ['id', 'name', 'detailUrl']
               })
               resdata.forEach((item: any) => {

@@ -142,13 +142,28 @@ export const selectRepos = function (fn: Function, isNeedTarget: boolean = false
   }
   if (isNeedTarget) {
     getUserName(function (targetName: string) {
-      reposActions.getReposForUser(targetName, function (reposdataList: any) {
+      reposActions.getReposForUser(targetName).then((reposdataList: any) => {
         selectReposList(reposdataList, targetName)
       })
     }, true)
   } else {
-    reposActions.getAll(function (reposdataList: any) {
+    reposActions.getAll().then((reposdataList: any) => {
       selectReposList(reposdataList)
+    })
+  }
+}
+
+// selectrepos
+export const selectReposWithMode = function (fn: Function, type: string = 'list') {
+  if (process.env.githubUserMode === 'target') {
+    selectRepos((reposname: string, targetName: string) => {
+      fn(reposname, targetName)
+    }, true, type)
+  } else {
+    getUserName((ownername: string) => {
+      selectRepos((reposname: string) => {
+        fn(reposname, ownername)
+      }, false, type)
     })
   }
 }

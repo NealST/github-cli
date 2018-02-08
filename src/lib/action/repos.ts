@@ -1,7 +1,7 @@
 import {request, previewAccept} from '../tools/request'
-import { getToken, getUserName, selectRepos } from '../tools/verification';
+import { getToken, getUserName, selectRepos, selectReposWithMode } from '../tools/verification';
 import askquestion from '../tools/askQuestion';
-import createTabale from '../tools/tableShow';
+import createTable from '../tools/tableShow';
 import getHyperlinkText from '../tools/hyperlinker';
 import promiseCompose from '../tools/promiseCompose';
 const acceptType = 'application/vnd.github.jean-grey-preview+json'
@@ -47,6 +47,13 @@ export const reposActions = {
       })
     }])
   },
+  listCommitComments (listOptions: any) {
+    return request(`/repos/${listOptions.ownername}/${listOptions.reposname}/comments`, 'get', {})
+      .then((res: any) => {
+        console.log(res.data)
+        return res.data
+      })
+  },
   getReposForUser (ownername: string) {
     return request(`/users/${ownername}/repos`, 'get', {}).then((res: any) => {
       console.log(res.data)
@@ -59,21 +66,19 @@ export const reposActions = {
       return res.data
     })
   },
-  getTopics (reposnamelist: Array<string>) {
-    return Promise.all(reposnamelist.map((item) => {
-      return request(`/repos/${process.env.githubUserName}/${item}/topics`, 'get', {}, {
+  getTopics (getOptions: any) {
+      return request(`/repos/${getOptions.ownername}/${getOptions.reposname}/topics`, 'get', {}, {
         headers: {
           'Accept': previewAccept
         }
-      })
-    })).then((res: any) => {
-      console.log(res)
-      return res
+      }).then((res: any) => {
+      console.log(res.data)
+      return res.data
     })
   },
-  replaceTopics (reposname: string, topics: Array<string>) {
+  replaceTopics (options: any) {
     return promiseCompose([getToken, () => {
-      return request(`/repos/${process.env.githubUserName}/${reposname}/topics`, 'put', {},  {
+      return request(`/repos/${options.ownername}/${options.reposname}/topics`, 'put', options.data,  {
         headers: {
           'Accept': previewAccept,
           'Authorization': `token ${process.env.githubToken}`
@@ -84,19 +89,17 @@ export const reposActions = {
       })
     }])
   },
-  getContributors (reposnamelist: Array<string>) {
-    return Promise.all(reposnamelist.map((item) => {
-      return request(`/repos/${process.env.githubUserName}/${item}/contributors`, 'get', {})
-    })).then((res: any) => {
+  getContributors (getOptions: any) {
+    return request(`/repos/${getOptions.ownername}/${getOptions.reposname}/contributors`, 'get', {}).then((res: any) => {
       console.log(res)
       return res
     })
   },
-  transfer (reposnamelist: Array<string>, newowner: string) {
+  transfer (options: any) {
     return promiseCompose([getToken, () => {
-      return Promise.all(reposnamelist.map((item) => {
-        return request(`/repos/${process.env.githubUserName}/${item}/transfer`, 'post', {
-          new_owner: newowner
+      return Promise.all(options.reposnamelist.map((item: any) => {
+        return request(`/repos/${options.ownername}/${item}/transfer`, 'post', {
+          new_owner: options.newowner
         }, {
           headers: {
             'Authorization': `token ${process.env.githubToken}`
@@ -120,8 +123,8 @@ export const reposActions = {
       })
     }])
   },
-  getStarredReposForUser (getStarOptions: any) {
-    return request(`/users/${getStarOptions.username}/starred`, 'get', getStarOptions.data || {})
+  getStarredReposForUser (getOptions: any) {
+    return request(`/users/${getOptions.ownername}/starred`, 'get', getOptions.data || {})
       .then((res: any) => {
         console.log(res.data)
         return res.data
@@ -140,7 +143,7 @@ export const reposActions = {
     }])
   },
   getWatchedReposForUser (getWatchOptions: any) {
-    return request(`/users/${getWatchOptions.username}/subscriptions`, 'get', getWatchOptions.data || {})
+    return request(`/users/${getWatchOptions.ownername}/subscriptions`, 'get', getWatchOptions.data || {})
       .then((res: any) => {
         console.log(res.data)
         return res.data
@@ -148,49 +151,57 @@ export const reposActions = {
   },
   setRepoSubscription (setOptions: any) {
     return promiseCompose([getToken, () => {
-      return request(`/repos/${setOptions.ownername}/${setOptions.reposname}/subscription`, 'put', setOptions.data || {}, {
-        headers: {
-          'Authorization': `token ${process.env.githubToken}`
-        }
-      }).then((res: any) => {
-        console.log(res.data)
-        return res.data
+      return Promise.all(setOptions.reposnamelist.map((item: any) => {
+        return request(`/repos/${setOptions.ownername}/${item}/subscription`, 'put', setOptions.data || {}, {
+          headers: {
+            'Authorization': `token ${process.env.githubToken}`
+          }
+        })
+      })).then((res: any) => {
+        console.log(res)
+        return res
       })
     }])
   },
-  starRepo (starOptions: any) {
+  starRepos (starOptions: any) {
     return promiseCompose([getToken, () => {
-      return request(`/user/starred/${starOptions.ownername}/${starOptions.reposname}`, 'put', {}, {
-        headers: {
-          'Authorization': `token ${process.env.githubToken}`
-        }
-      }).then((res: any) => {
-        console.log(res.data)
-        return res.data
+      return Promise.all(starOptions.reposnamelist.map((item: any) => {
+        return request(`/user/starred/${starOptions.ownername}/${item}`, 'put', {}, {
+          headers: {
+            'Authorization': `token ${process.env.githubToken}`
+          }
+        })
+      })).then((res: any) => {
+        console.log(res)
+        return res
       })
     }])
   },
-  unStarRepo (starOptions: any) {
+  unStarRepos (starOptions: any) {
     return promiseCompose([getToken, () => {
-      return request(`/user/starred/${starOptions.ownername}/${starOptions.reposname}`, 'delete', {}, {
-        headers: {
-          'Authorization': `token ${process.env.githubToken}`
-        }
-      }).then((res: any) => {
-        console.log(res.data)
-        return res.data
+      return Promise.all(starOptions.reposnamelist.map((item: any) => {
+        return request(`/user/starred/${starOptions.ownername}/${item}`, 'delete', {}, {
+          headers: {
+            'Authorization': `token ${process.env.githubToken}`
+          }
+        })
+      })).then((res: any) => {
+        console.log(res)
+        return res
       })
     }])
   },
-  unWatchRepo (watchOptions: any) {
+  unWatchRepos (watchOptions: any) {
     return promiseCompose([getToken, () => {
-      return request(`/repos/${watchOptions.ownername}/${watchOptions.reposname}/subscription`, 'delete', {}, {
-        headers: {
-          'Authorization': `token ${process.env.githubToken}`
-        }
-      }).then((res: any) => {
-        console.log(res.data)
-        return res.data
+      return Promise.all(watchOptions.reposnamelist.map((item: any) => {
+        return request(`/repos/${watchOptions.ownername}/${item}/subscription`, 'delete', {}, {
+          headers: {
+            'Authorization': `token ${process.env.githubToken}`
+          }
+        })
+      })).then((res: any) => {
+        console.log(res)
+        return res
       })
     }])
   },
@@ -205,26 +216,15 @@ export const reposActions = {
   // fork a repository
   fork (forkOptions: any) {
     return promiseCompose([getToken, () => {
-      return request(`/repos/${forkOptions.ownername}/${forkOptions.reposname}/forks`, 'post', {}, {
-        headers: {
-          'Authorization': `token ${process.env.githubToken}`
-        }
-      }).then((res: any) => {
-        console.log(res.data)
-        return res.data
-      })
-    }])
-  },
-  // merge a branch
-  merge (mergeOptions: any) {
-    return promiseCompose([getToken, () => {
-      return request(`/repos/${mergeOptions.ownername}/${mergeOptions.reposname}/merges`, 'post', mergeOptions.data, {
-        headers: {
-          'Authorization': `token ${process.env.githubToken}`
-        }
-      }).then((res: any) => {
-        console.log(res.data)
-        return res.data
+      return Promise.all(forkOptions.reposnamelist.map((item: any) => {
+        return request(`/repos/${forkOptions.ownername}/${item}/forks`, 'post', {}, {
+          headers: {
+            'Authorization': `token ${process.env.githubToken}`
+          }
+        })
+      })).then((res: any) => {
+        console.log(res)
+        return res
       })
     }])
   },
@@ -296,16 +296,18 @@ export const reposActions = {
     }])
   },
   // delete collaborators for a repository
-  deleteCollaborator (deleteOptions: any) {
+  deleteCollaborators (deleteOptions: any) {
     return promiseCompose([getToken, () => {
-      return request(`/repos/${deleteOptions.ownername}/${deleteOptions.reposname}/collaborators/${deleteOptions.username}`, 'delete', {}, {
-        headers: {
-          'Accept': previewAccept,
-          'Authorization': `token ${process.env.githubToken}`
-        }
-      }).then((res: any) => {
-        console.log(res.data)
-        return res.data
+      return Promise.all(deleteOptions.names.map((item: any) => {
+        return request(`/repos/${deleteOptions.ownername}/${deleteOptions.reposname}/collaborators/${item}`, 'delete', {}, {
+          headers: {
+            'Accept': previewAccept,
+            'Authorization': `token ${process.env.githubToken}`
+          }
+        })
+      })).then((res: any) => {
+        console.log(res)
+        return res
       })
     }])
   },
@@ -359,14 +361,16 @@ export const reposActions = {
   // delete a milestone
   deleteMilestone (deleteOptions: any) {
     return promiseCompose([getToken, () => {
-      return request(`/repos/${deleteOptions.ownername}/${deleteOptions.reposname}/milestones/${deleteOptions.number}`, 'delete', {}, {
-        headers: {
-          'Accept': 'application/vnd.github.jean-grey-preview+json',
-          'Authorization': `token ${process.env.githubToken}`
-        }
-      }).then((res: any) => {
-        console.log(res.data)
-        return res.data
+      return Promise.all(deleteOptions.numbers.map((item: any) => {
+        return request(`/repos/${deleteOptions.ownername}/${deleteOptions.reposname}/milestones/${item}`, 'delete', {}, {
+          headers: {
+            'Accept': 'application/vnd.github.jean-grey-preview+json',
+            'Authorization': `token ${process.env.githubToken}`
+          }
+        })
+      })).then((res: any) => {
+        console.log(res)
+        return res
       })
     }])
   },
@@ -410,77 +414,546 @@ export const reposActions = {
     }])
   },
   // delete a label
-  deleteLabel (deleteOptions: any) {
+  deleteLabels (deleteOptions: any) {
     return promiseCompose([getToken, () => {
-      return request(`/repos/${deleteOptions.ownername}/${deleteOptions.reposname}/labels/${deleteOptions.labelname}`, 'delete', {}, {
-        headers: {
-          'Authorization': `token ${process.env.githubToken}`,
-          'Accept': acceptType
-        }
-      }).then((res: any) => {
-        console.log(res.data)
-        return res.data
+      return Promise.all(deleteOptions.names.map((item: any) => {
+        return request(`/repos/${deleteOptions.ownername}/${deleteOptions.reposname}/labels/${item}`, 'delete', {}, {
+          headers: {
+            'Authorization': `token ${process.env.githubToken}`,
+            'Accept': acceptType
+          }
+        })
+      })).then((res: any) => {
+        console.log(res)
+        return res
       })
     }])
   }
 }
 
-export const reposStrategies = {
+export const reposStrategies: {[key: string]: any} = {
   'ls': {
     '-r': function () {
       if (process.env.githubUserMode === 'target') {
+        getUserName((ownername: string) => {
+          reposActions.getReposForUser(ownername)
+        }, true)
+      } else {
         reposActions.getAll()
       }
+    },
+    '-b': function () {
+      selectReposWithMode((reposname: string, ownername: string) => {
+        reposActions.getBranches({
+          ownername: ownername,
+          reposname: reposname
+        })
+      })
+    },
+    '-t': function () {
+      selectReposWithMode((reposname: string, ownername: string) => {
+        reposActions.getTopics({
+          ownername: ownername,
+          reposname: reposname
+        })
+      })
+    },
+    '-c': function () {
+      selectReposWithMode((reposname: string, ownername: string) => {
+        reposActions.getContributors({
+          ownername: ownername,
+          reposname: reposname
+        })
+      })
+    },
+    '-s': function () {
+      if (process.env.githubUserMode === 'target') {
+        getUserName((targetName: string) => {
+          reposActions.getStarredReposForUser({
+            ownername: targetName
+          })
+        }, true)
+      } else {
+        reposActions.getStarredRepos()
+      }
+    },
+    '-w': function () {
+      if (process.env.gitUserMode === 'target') {
+        getUserName((targetName: string) => {
+          reposActions.getWatchedReposForUser({
+            ownername: targetName
+          })
+        })
+      } else {
+        reposActions.getWatchedRepos()
+      }
+    },
+    '-i': function () {
+      selectReposWithMode((reposname: string, ownername: string) => {
+        reposActions.getCommits({
+          ownername: ownername,
+          reposname: reposname
+        })
+      })
+    },
+    '-o': function () {
+      selectReposWithMode((reposname: string, ownername: string) => {
+        reposActions.getCollaborators({
+          ownername: ownername,
+          reposname: reposname
+        })
+      })
+    },
+    '-y': function () {
+      selectReposWithMode((reposname: string, ownername: string) => {
+        reposActions.getLastyearCommits({
+          ownername: ownername,
+          reposname: reposname
+        })
+      })
+    },
+    '-m': function () {
+      selectReposWithMode((reposname: string, ownername: string) => {
+        reposActions.listMilestones({
+          ownername: ownername,
+          reposname: reposname
+        })
+      })
+    },
+    '-l': function () {
+      selectReposWithMode((reposname: string, ownername: string) => {
+        reposActions.listAllLabels({
+          ownername: ownername,
+          reposname: reposname
+        })
+      })
+    },
+    '-cm': function () {
+      selectReposWithMode((reposname: string, ownername: string) => {
+        reposActions.listCommitComments({
+          ownername: ownername,
+          reposname: reposname
+        })
+      })
     }
-    'list repositories of myself',
-    '-b': 'list all branches of a repository',
-    '-t': 'list all topics of a repositories',
-    '-c': 'list all contributors of a repository',
-    '-s': 'list all starred repositories by myself',
-    '-w': 'list all watching repositories',
-    '-i': 'list commits of a repository',
-    '-o': 'list all collaborators of a repository',
-    '-y': 'list commit activity of last year',
-    '-m': 'list milestones of a repository',
-    '-l': 'list all the labels of a repository'
   },
   'cr': {
-    '-r': 'create reposotories',
-    '-a': 'add collaborator for a repository',
-    '-m': 'create a milestone for a repository',
-    '-l': 'create labels for a repository'
+    '-r': function () {
+      askquestion([{
+        type: 'input',
+        name: 'reposlist',
+        message: 'please input names of repositories(split with space):'
+      }], (answers: any) => {
+        reposActions.create(answers.reposlist.split(' ')).then((res: any) => {
+          console.log(res)
+        })
+      })
+    },
+    '-a': function () {
+      selectReposWithMode((reposname: string, ownername: string) => {
+        askquestion([{
+          type: 'input',
+          name: 'username',
+          message: 'please input the username will be added as a collaborator:'
+        }, {
+          type: 'list',
+          name: 'permission',
+          message: 'please select a permission level for this collaborator:',
+          choices: ['pull', 'push', 'admin']
+        }], (answers: any) => {
+          reposActions.addCollaborator({
+            ownername: ownername,
+            reposname: reposname,
+            username: answers.username,
+            data: {
+              permission: answers.permission
+            }
+          })
+        })
+      })
+    },
+    '-m': function () {
+      selectReposWithMode((reposname: string, ownername: string) => {
+        askquestion([{
+          type: 'input',
+          name: 'title',
+          message: 'please input the title of this milestone:',
+        }, {
+          type: 'list',
+          name: 'state',
+          message: 'please select a state for this milestone:',
+          choices: ['open', 'closed']
+        }, {
+          type: 'editor',
+          name: 'description',
+          message: 'please input the description for this milestone:'
+        }], (answers: any) => {
+          reposActions.createMilestone({
+            ownername: ownername,
+            reposname: reposname,
+            data: {
+              title: answers.title,
+              state: answers.state,
+              description: answers.description
+            }
+          })
+        })
+      })
+    },
+    '-l': function () {
+      selectReposWithMode((reposname: string, ownername: string) => {
+        askquestion([{
+          type: 'input',
+          name: 'name',
+          message: 'please input the name of this label:'
+        }, {
+          type: 'input',
+          name: 'color',
+          message: 'please input the color hex code(6 character, without #):'
+        }], (answers: any) => {
+          reposActions.createLabel({
+            ownername: ownername,
+            reposname: reposname,
+            data: {
+              name: answers.name,
+              color: answers.color
+            }
+          })
+        })
+      })
+    }
   },
   'et': {
-    '-t': 'replace topics for a repository',
-    '-m': 'edit a milestone for a repository',
-    '-l': 'edit a label for a repository'
+    '-t': function () {
+      selectReposWithMode((reposname: string, ownername: string) => {
+        askquestion([{
+          type: 'input',
+          name: 'names',
+          message: 'please input some names to replace existed topic names(split with space):'
+        }], (answers: any) => {
+          reposActions.replaceTopics({
+            ownername: ownername,
+            reposname: reposname,
+            data: {
+              names: answers.names.split(' ')
+            }
+          })
+        })
+      })
+    },
+    '-m': function () {
+      let questionObject: {[key: string]: any} = {
+        title: {
+          type: 'input',
+          name: 'title',
+          message: 'please input the title of this milestone'
+        },
+        state: {
+          type: 'list',
+          name: 'state',
+          message: 'please select a state for this milestone',
+          choices: ['open', 'closed']
+        },
+        description: {
+          type: 'editor',
+          name: 'description',
+          message: 'please input the description for this milestone'
+        }
+      }
+      selectReposWithMode((reposname: string, ownername: string) => {
+        reposActions.listMilestones({
+          ownername: ownername,
+          reposname: reposname
+        }).then((resdata: any) => {
+          let dataTable: any = createTable({
+            head: ['number', 'title', 'state', 'description', 'detailUrl']
+          })
+          resdata.forEach((item: any) => {
+            dataTable.push([item.number, item.title, item.state, item.description, getHyperlinkText('点击查看详情', item.html_url)])
+          })
+          askquestion([{
+            type: 'list',
+            name: 'number',
+            message: 'please select a milestone:',
+            choices: dataTable
+          }, {
+            type: 'checkbox',
+            name: 'changes',
+            message: 'please select some items you want to change:',
+            choices: ['title', 'state', 'description']
+          }], (selectAnswers: any) => {
+            let questionArray = selectAnswers.changes.map((item: any) => {
+              return questionObject[item]
+            })
+            askquestion(questionArray, (answers: any) => {
+              reposActions.editMilestone({
+                ownername: ownername,
+                reposname: reposname,
+                number: selectAnswers.number[0],
+                data: answers
+              })
+            })
+          })
+        })
+      })
+    },
+    '-l': function () {
+      let questionObject: {[key: string]: any} = {
+        name: {
+          type: 'input',
+          name: 'name',
+          message: 'please input the name for this label:'
+        },
+        color: {
+          type: 'input',
+          name: 'color',
+          message: 'please input the color for this label:'
+        }
+      }
+      selectReposWithMode((reposname: string, ownername: string) => {
+        reposActions.listAllLabels({
+          ownername: ownername,
+          reposname: reposname
+        }).then((resdata: any) => {
+          let dataTable: any = createTable({
+            head: ['id', 'name', 'color']
+          })
+          resdata.forEach((item: any) => {
+            dataTable.push([item.id, item.name, item.color])
+          })
+          askquestion([{
+            type: 'list',
+            name: 'labelname',
+            message: 'please select a label to change:',
+            choices: dataTable
+          }, {
+            type: 'checkbox',
+            name: 'changes',
+            message: 'please select change items you want to implement:',
+            choices: ['name', 'color']
+          }], (answers: any) => {
+            let questionArray = answers.changes.map((item: any) => {
+              return questionObject[item]
+            })
+            askquestion(questionArray, (theanswers: any) => {
+              reposActions.editLabel({
+                ownername: ownername,
+                reposname: reposname,
+                labelname: answers.labelname[1],
+                data: theanswers
+              })
+            })
+          })
+        })
+      })
+    }
   },
   'rm': {
-    '-r': 'delete repositories',
-    '-m': 'delete milestones of a repository',
-    '-c': 'delete collaborators of a repository',
-    '-l': 'delete labels of a repository'
+    '-r': function () {
+      getUserName((ownername: string) => {
+        reposActions.getAll().then((resdata: any) => {
+          let dataTable: any = createTable({
+            head: ['name', 'description', 'detailUrl']
+          })
+          resdata.forEach((item: any) => {
+            dataTable.push([item.name, item.description, getHyperlinkText('点击查看详情', item.html_url)])
+          })
+          askquestion([{
+            type: 'checkbox',
+            name: 'repos',
+            message: 'please select some repositories to be removed:',
+            choices: dataTable
+          }], (answers: any) => {
+            reposActions.delete(answers.repos.map((item: any) => {
+              return item[0]
+            }))
+          })
+        })
+      })
+    },
+    '-m': function () {
+      selectReposWithMode((reposname: string, ownername: string) => {
+        reposActions.listMilestones({
+          ownername: ownername,
+          reposname: reposname
+        }).then((resdata: any) => {
+          let dataTable: any = createTable({
+            head: ['number', 'title', 'state', 'description', 'detailUrl']
+          })
+          resdata.forEach((item: any) => {
+            dataTable.push([item.number, item.title, item.state, item.description, getHyperlinkText('点击查看详情', item.html_url)])
+          })
+          askquestion([{
+            type: 'checkbox',
+            name: 'numbers',
+            message: 'please select a milestone:',
+            choices: dataTable
+          }], (selectAnswers: any) => {
+            reposActions.deleteMilestone({
+              ownername: ownername,
+              reposname: reposname,
+              numbers: selectAnswers.numbers.map((item: any) => {
+                return item[0]
+              })
+            })
+          })
+        })
+      })
+    },
+    '-c': function () {
+      selectReposWithMode((reposname: string, ownername: string) => {
+        reposActions.getCollaborators({
+          ownername: ownername,
+          reposname: reposname
+        }).then((resdata: any) => {
+          askquestion([{
+            type: 'checkbox',
+            name: 'names',
+            message: 'please select some collaborators to be removed:',
+            choices: resdata.map((item: any) => {
+              return item.login
+            })
+          }], (answers: any) => {
+            reposActions.deleteCollaborators({
+              ownername: ownername,
+              reposname: reposname,
+              names: answers.names
+            })
+          })
+        })
+      })
+    },
+    '-l': function () {
+      selectReposWithMode((reposname: string, ownername: string) => {
+        reposActions.listAllLabels({
+          ownername: ownername,
+          reposname: reposname
+        }).then((resdata: any) => {
+          askquestion([{
+            type: 'checkbox',
+            name: 'labels',
+            message: 'please select some labels to be removed:',
+            choices: resdata.map((item: any) => {
+              return item.name
+            })
+          }], (answers: any) => {
+            reposActions.deleteLabels({
+              ownername: ownername,
+              reposname: reposname,
+              names: answers.labels
+            })
+          })
+        })
+      })
+    }
   },
   'st': {
-    '-s': 'set subscription for repositories',
-    '-r': 'star repositories',
-    '-rn': 'unstar repositories',
-    '-sn': 'unwatch repositories'
+    '-s': function () {
+      selectRepos((reposnamelist: Array<string>, ownername: string) => {
+        reposActions.setRepoSubscription({
+          reposnamelist: reposnamelist,
+          ownername: ownername
+        })
+      }, true)
+    },
+    '-r': function () {
+      selectRepos((reposnamelist: Array<string>, ownername: string) => {
+        reposActions.starRepos({
+          reposnamelist: reposnamelist,
+          ownername: ownername
+        })
+      }, true)
+    },
+    '-rn': function () {
+      selectRepos((reposnamelist: Array<string>, ownername: string) => {
+        reposActions.unStarRepos({
+          reposnamelist: reposnamelist,
+          ownername: ownername
+        })
+      }, true)
+    },
+    '-sn': function () {
+      selectRepos((reposnamelist: Array<string>, ownername: string) => {
+        reposActions.unWatchRepos({
+          reposnamelist: reposnamelist,
+          ownername: ownername
+        })
+      }, true)
+    }
   },
   'ck': {
-    '-c': 'check whether a user is a collaborator of a repository',
-    '-p': 'check the permission level of a collaborator'
+    '-c': function () {
+      selectReposWithMode((reposname: string, ownername: string) => {
+        askquestion([{
+          type: 'input',
+          name: 'username',
+          message: 'please input the username to be checked:'
+        }], (answers: any) => {
+          reposActions.checkCollaborator({
+            ownername: ownername,
+            reposname: reposname,
+            username: answers.username
+          })
+        })
+      })
+    },
+    '-p': function () {
+      selectReposWithMode((reposname: string, ownername: string) => {
+        askquestion([{
+          type: 'input',
+          name: 'username',
+          message: 'please input the username to be checked:'
+        }], (answers: any) => {
+          reposActions.checkCollaboratorPermission({
+            ownername: ownername,
+            reposname: reposname,
+            username: answers.username
+          })
+        })
+      })
+    }
   },
-  'ts': {
-    message: 'transfer repositories to another user'
+  'ts': function () {
+    selectRepos((reposnamelist: Array<string>, ownername: string) => {
+      askquestion([{
+        type: 'input',
+        name: 'newowner',
+        message: 'please input the name of new owner:'
+      }], (answers: any) => {
+        reposActions.transfer({
+          ownername: ownername,
+          reposnamelist: reposnamelist,
+          newowner: answers.newowner
+        })
+      })
+    })
   },
-  'cm': {
-    message: 'compare the content of two different branch'
+  'cm': function () {
+    selectReposWithMode((reposname: string, ownername: string) => {
+      askquestion([{
+        type: 'input',
+        name: 'head',
+        message: 'please input the head branch name:'
+      }, {
+        type: 'input',
+        name: 'base',
+        message: 'please input the base branch name:'
+      }], (answers: any) => {
+        reposActions.compareCommits({
+          ownername: ownername,
+          reposname: reposname,
+          base: answers.base,
+          head: answers.head
+        })
+      })
+    })
   },
-  'fk': {
-    message: 'fork a repository'
-  },
-  'mg': {
-    message: 'merge branch of a repository'
+  'fk': function () {
+    selectRepos((reposnamelist: Array<string>, ownername: string) => {
+      reposActions.fork({
+        ownername: ownername,
+        reposnamelist: reposnamelist
+      })
+    }, true)
   }
 }
