@@ -6,7 +6,7 @@ const configFilePath = `${theHomeDir}/githubUserInfo.json`
 
 // 获取信息
 export const getInfo = function () {
-  return new Promise(function (resolve, reject) {
+  return (new Promise(function (resolve, reject) {
     readFile(configFilePath, function (err, data) {
       if (err) {
         reject(err)
@@ -17,13 +17,15 @@ export const getInfo = function () {
       }
       resolve(filedata)
     })
+  })).catch((err: any) => {
+    console.log(err)
   })
 }
 
 // 存储信息
 export const saveInfo = function (saveOptions: any) {
   let writedata = JSON.stringify(saveOptions)
-  return new Promise(function (resolve, reject) {
+  return (new Promise(function (resolve, reject) {
     function filecb (err: any) {
       if (err) {
         reject(err)
@@ -38,5 +40,7 @@ export const saveInfo = function (saveOptions: any) {
         writeFile.call(this, configFilePath, thewritedata, filecb)
       })
     }
+  })).catch((err: any) => {
+    console.log(err)
   })
 }

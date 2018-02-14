@@ -2,12 +2,11 @@
 
 import * as program from 'commander'
 
-import { mainTitle, command, example, describe, error } from './tools/output'
+import { mainTitle, command, example, describe, error } from '../lib/tools/output'
 import { reactionStrategy } from '../lib/action/reaction'
 
 program
   .version(require('../package.json').version)
-  .usage('<command> [options]')
   .parse(process.argv)
 
 const commandTypeObject: {[key: string]: any} = {
@@ -53,9 +52,9 @@ program.on('--help', function () {
   example()
 })
 
-let thecmd = program.args[0] // 命令类型
-let theoption = program.args[1] // 参数值
-let params = program.args.slice(1) // 参数数组
+let paramArray = process.argv.slice(2)
+let thecmd = paramArray[0] // 命令类型
+let theoption = paramArray[1] // 参数值
 
 if (!thecmd || thecmd === '-h') {
   program.help()

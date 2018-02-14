@@ -1,7 +1,8 @@
 // 客户端请求模块
 
 let axios = require('axios')
-
+import spinner from './spinner'
+import { error } from './output';
 export const thedomain = 'https://api.github.com'
 export const previewAccept = 'application/vnd.github.mercy-preview+json'
 
@@ -146,7 +147,23 @@ export const request = function (url: string, type: string, data: any, requestOp
     timeout: 5000,
     ...ajaxdata
   }, requestOptions || {})
-  return axios(configOptions).catch((err: any) => {
+  // there are some problems with axios promise, so I wrapped a new promise
+  return (new Promise(function (resolve, reject) {
+    axios(configOptions).catch((err: any) => {
+      reject(err)
+    }).then((res: any) => {
+      resolve(res)
+    })
+  })).catch((err: any) => {
+    if (err.response && err.response.status) {
+      if (err.response.status === 401) {
+        error('you are unauthorized')
+      }
+      if (err.response.status === 403) {
+        error('your authentication is forbidden')
+      }
+    }
     console.log(err)
+    process.exit()
   })
 }

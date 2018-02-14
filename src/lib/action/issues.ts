@@ -251,7 +251,7 @@ const selectIssue = function (fn: Function) {
         head: ['title', 'content', 'number', 'detailUrl']
       })
       res[0].forEach((item: any) => {
-        dataTable.push([item.title, item.body, item.number, getHyperlinkText('点击查看该issue详情', item.html_url)])
+        dataTable.push([item.title, item.body, item.number, getHyperlinkText(item.html_url)])
       })
       askquestion([{
         type: 'list',
@@ -292,9 +292,12 @@ export const issueStrategies: any = {
       })
     },
     '-r': function () {
-      selectRepos((reposlist: Array<string>, targetName: string) => {
-        issueActions.listForRepos(targetName, reposlist, {})
-      }, true)
+      selectRepos((reposname: string, targetName: string) => {
+        issueActions.listForRepos({
+          ownername: targetName,
+          reposname: reposname
+        })
+      }, true, 'list')
     },
     '-a': function () {
       selectRepos((reposname: string, targetName: string) => {
@@ -433,7 +436,7 @@ export const issueStrategies: any = {
             head: ['id', 'content', 'detailUrl']
           })
           resdata.forEach((item: any) => {
-            dataTable.push([item.id, item.body, getHyperlinkText('点击查看该comment详情', item.html_url)])
+            dataTable.push([item.id, item.body, getHyperlinkText(item.html_url)])
           })
           askquestion([{
             type: 'list',
@@ -511,7 +514,7 @@ export const issueStrategies: any = {
             head: ['id', 'content', 'detailUrl']
           })
           resdata.forEach((item: any) => {
-            dataTable.push([item.id, item.body, getHyperlinkText('点击查看该comment详情', item.html_url)])
+            dataTable.push([item.id, item.body, getHyperlinkText(item.html_url)])
           })
           askquestion([{
             type: 'checkbox',

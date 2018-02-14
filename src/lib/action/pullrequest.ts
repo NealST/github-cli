@@ -332,7 +332,7 @@ export const prStrategies: {[key: string]: any} = {
             head: ['id', 'state', 'body', 'detailUrl']
           })
           resdata.forEach((item: any) => {
-            dataTable.push([item.id, item.state, item.body, getHyperlinkText('点击获取该review详情', item.html_url)])
+            dataTable.push([item.id, item.state, item.body, getHyperlinkText(item.html_url)])
           })
           askquestion([{
             type: 'list',
@@ -511,7 +511,7 @@ export const prStrategies: {[key: string]: any} = {
             head: ['id', 'content', 'detailUrl']
           })
           resdata.forEach((item: any) => {
-            dataTable.push([item.id, item.body, getHyperlinkText('点击查看该comment详情', item.html_url)])
+            dataTable.push([item.id, item.body, getHyperlinkText(item.html_url)])
           })
           askquestion([{
             type: 'list',
@@ -548,7 +548,7 @@ export const prStrategies: {[key: string]: any} = {
             head: ['id', 'body', 'state', 'detailUrl']
           })
           resdata.forEach((item: any) => {
-            dataTable.push([item.id, item.body, item.state, getHyperlinkText('点击查看该review详情', item.html_url)])
+            dataTable.push([item.id, item.body, item.state, getHyperlinkText(item.html_url)])
           })
           askquestion([{
             type: 'checkbox',
@@ -578,7 +578,7 @@ export const prStrategies: {[key: string]: any} = {
             head: ['id', 'content', 'detailUrl']
           })
           resdata.forEach((item: any) => {
-            dataTable.push([item.id, item.body, getHyperlinkText('点击查看该comment详情', item.html_url)])
+            dataTable.push([item.id, item.body, getHyperlinkText(item.html_url)])
           })
           askquestion([{
             type: 'checkbox',
@@ -637,7 +637,7 @@ export const prStrategies: {[key: string]: any} = {
           head: ['id', 'content', 'state', 'detaiUrl']
         })
         resdata.forEach((item: any) => {
-          dataTable.push([item.id, item.body, item.state, getHyperlinkText('点击查看该review详情', item.html_url)])
+          dataTable.push([item.id, item.body, item.state, getHyperlinkText(item.html_url)])
         })
         askquestion([{
           type: 'list',
@@ -679,7 +679,7 @@ export const prStrategies: {[key: string]: any} = {
           head: ['id', 'content', 'state', 'detaiUrl']
         })
         resdata.forEach((item: any) => {
-          dataTable.push([item.id, item.body, item.state, getHyperlinkText('点击查看该review详情', item.html_url)])
+          dataTable.push([item.id, item.body, item.state, getHyperlinkText(item.html_url)])
         })
         askquestion([{
           type: 'list',

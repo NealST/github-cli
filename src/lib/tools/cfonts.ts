@@ -11,12 +11,12 @@ interface cfontsOptions {
 }
 export default function textFonts (text: string, textOptions?: cfontsOptions) {
   cfonts.say(text, Object.assign({
-    font: 'block',
+    font: '3d',
     align: 'left',
-    colors: ['white'],
+    colors: ['magenta'],
     background: 'Black',
     letterSpacing: 1,
-    lineHeight: 1,
+    lineHeight: 0.1,
     space: true,
     maxLength: '0'  
   }, textOptions || {}))

@@ -1,10 +1,12 @@
 const supportsHyperlinks = require('supports-hyperlinks')
 const hyperlinker = require('hyperlinker')
 
-export default function getHyperlinkText(message: string, theurl: string): string {
+export default function getHyperlinkText(theurl: string): string {
+  let thedata = ''
   if (supportsHyperlinks.stdout) {
-    return hyperlinker(message, theurl)
+    thedata = hyperlinker('点击查看详情', theurl)
   } else {
-    return theurl
+    thedata = theurl
   }
+  return thedata
 }

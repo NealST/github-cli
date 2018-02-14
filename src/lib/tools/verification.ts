@@ -13,9 +13,10 @@ const getTargetUserName = function (message: string, fn?: Function, isNeedAsk: b
       process.env.githubTargetUserName = username
       // add those used names to an array to record some names used frequently
       getInfo().then((res: any) => {
-        let githubTargetUserNames = res.githubTargetUserNames || []
+        let githubTargetUserNames = (Array.isArray(res.githubTargetUserNames) && res.githubTargetUserNames) || []
         if (githubTargetUserNames.indexOf(username) < 0) {
-          saveInfo({githubTargetUserNames: githubTargetUserNames.push(username)})
+          githubTargetUserNames.push(username)
+          saveInfo({githubTargetUserNames: githubTargetUserNames})
         }
       })
       fn && fn(username)
@@ -43,7 +44,7 @@ const getTargetUserName = function (message: string, fn?: Function, isNeedAsk: b
 const getSelfUserName = function (fn?: Function, isNeedGet: boolean = true) {
   function validateProcess (data: any) {
     if (!data.githubUserName) {
-      getTargetUserName('请输入您的Github用户名', function (validName: string) {
+      getTargetUserName('please input your github username', function (validName: string) {
         process.env.githubUserName = validName
         saveInfo({githubUserName: validName})
         fn && fn(validName)
@@ -72,7 +73,7 @@ export const getUserName = function (fn: Function, isNeedTarget: boolean = false
           type: 'list',
           name: 'targetname',
           message: 'you may want to select one from these usernames:',
-          choices: githubTargetUserNames.push('no one matched')
+          choices: githubTargetUserNames.concat('no one matched')
         }], function (answers: any) {
           if (answers.targetname === 'no one matched') {
             getTargetUserName('please input the target gihub username:', fn)
@@ -134,7 +135,7 @@ export const selectRepos = function (fn: Function, isNeedTarget: boolean = false
     askquestion([{
       type: type,
       name: 'reposlist',
-      message: 'please select the repository:',
+      message: 'please select the repository you need:',
       choices: thereposNameList
     }], function (answers: any) {
       fn(answers.reposlist, targetName)

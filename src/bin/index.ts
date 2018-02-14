@@ -4,7 +4,7 @@ import * as program from 'commander'
 import {spawn} from 'child_process'
 import * as path from 'path'
 import * as fs from 'fs'
-import { mainTitle, command, example, describe, error } from './tools/output';
+import { mainTitle, command, example, describe, error } from '../lib/tools/output';
 import textFonts from '../lib/tools/cfonts';
 import * as updateNotifier from 'update-notifier'
 
@@ -19,15 +19,15 @@ const commandTypeObject: { [key: string]: any } = {
   },
   'pr': {
     message: 'pull request action(pull request操作)',
-    fontstext: 'pull requests'
+    fontstext: 'pullReq'
   },
   'rt': {
     message: 'emojis action(表情回应)',
-    fontstext: 'reactions'
+    fontstext: 'react'
   },
   'rs': {
     message: 'repository action(仓库操作)',
-    fontstext: 'repositories'
+    fontstext: 'repos'
   },
   'sc': {
     message: 'search action(搜索操作)',
@@ -41,7 +41,6 @@ const commandTypeObject: { [key: string]: any } = {
 
 program
   .version(pkg.version)
-  .usage('<command> [options]')
   .parse(process.argv)
 
 program.on('--help', function() {
@@ -60,6 +59,7 @@ program.on('--help', function() {
   })
 })
 
+console.log(process.argv)
 let args = process.argv.slice(3)
 let thecommand = program.args[0]
 

@@ -1,23 +1,21 @@
 import {request, previewAccept} from '../tools/request'
 import { getToken, getUserName, selectRepos, selectReposWithMode } from '../tools/verification';
-import askquestion from '../tools/askQuestion';
+import askquestion, {createChoiceTable} from '../tools/askQuestion';
 import createTable from '../tools/tableShow';
 import getHyperlinkText from '../tools/hyperlinker';
 import promiseCompose from '../tools/promiseCompose';
+import { info, success } from '../tools/output';
 const acceptType = 'application/vnd.github.jean-grey-preview+json'
 
 export const reposActions = {
-  create (reposNameList: Array<string>) {
+  create (createOptions: any) {
     return promiseCompose([getToken, () => {
-      return Promise.all(reposNameList.map((item) => {
-        return request(`/user/repos`, 'post', {name: item}, {
-          headers: {
-            'Authorization': `token ${process.env.githubToken}`
-          }
-        })
-      })).then((res: any) => {
-        console.log(res)
-        return res
+      return request(`/user/repos`, 'post', createOptions, {
+        headers: {
+          'Authorization': `token ${process.env.githubToken}`
+        }
+      }).then((res: any) => {
+        return res.data
       })
     }])
   },
@@ -42,7 +40,6 @@ export const reposActions = {
           'Authorization': `token ${process.env.githubToken}`
         }
       }).then((res: any) => {
-        console.log(res.data)
         return res.data
       })
     }])
@@ -50,19 +47,16 @@ export const reposActions = {
   listCommitComments (listOptions: any) {
     return request(`/repos/${listOptions.ownername}/${listOptions.reposname}/comments`, 'get', {})
       .then((res: any) => {
-        console.log(res.data)
         return res.data
       })
   },
   getReposForUser (ownername: string) {
     return request(`/users/${ownername}/repos`, 'get', {}).then((res: any) => {
-      console.log(res.data)
       return res.data
     })
   },
   getBranches (getOptions: any) {
     return request(`/repos/${getOptions.ownername}/${getOptions.reposname}/branches`, 'get', {}).then((res: any) => {
-      console.log(res.data)
       return res.data
     })
   },
@@ -72,7 +66,6 @@ export const reposActions = {
           'Accept': previewAccept
         }
       }).then((res: any) => {
-      console.log(res.data)
       return res.data
     })
   },
@@ -84,15 +77,13 @@ export const reposActions = {
           'Authorization': `token ${process.env.githubToken}`
         }
       }).then((res: any) => {
-        console.log(res.data)
         return res.data
       })
     }])
   },
   getContributors (getOptions: any) {
     return request(`/repos/${getOptions.ownername}/${getOptions.reposname}/contributors`, 'get', {}).then((res: any) => {
-      console.log(res)
-      return res
+      return res.data
     })
   },
   transfer (options: any) {
@@ -118,7 +109,6 @@ export const reposActions = {
           'Authorization': `token ${process.env.githubToken}`
         }
       }).then((res: any) => {
-        console.log(res.data)
         return res.data
       })
     }])
@@ -126,7 +116,6 @@ export const reposActions = {
   getStarredReposForUser (getOptions: any) {
     return request(`/users/${getOptions.ownername}/starred`, 'get', getOptions.data || {})
       .then((res: any) => {
-        console.log(res.data)
         return res.data
       })
   },
@@ -137,7 +126,6 @@ export const reposActions = {
           'Authorization': `token ${process.env.githubToken}`
         }
       }).then((res: any) => {
-        console.log(res.data)
         return res.data
       })
     }])
@@ -145,7 +133,6 @@ export const reposActions = {
   getWatchedReposForUser (getWatchOptions: any) {
     return request(`/users/${getWatchOptions.ownername}/subscriptions`, 'get', getWatchOptions.data || {})
       .then((res: any) => {
-        console.log(res.data)
         return res.data
       })
   },
@@ -240,20 +227,21 @@ export const reposActions = {
   getCommits (getOptions: any) {
     return request(`/repos/${getOptions.ownername}/${getOptions.reposname}/commits`, 'get', {})
       .then((res: any) => {
-        console.log(res.data)
         return res.data
       })
   },
   // get collaborators of a repository
   getCollaborators (getOptions: any) {
-    return request(`/repos/${getOptions.ownername}/${getOptions.reposname}/collaborators`, 'get', {}, {
-      headers: {
-        'Accept': previewAccept
-      }
-    }).then((res: any) => {
-      console.log(res.data)
-      return res.data
-    })
+    return promiseCompose([getToken, () => {
+      return request(`/repos/${getOptions.ownername}/${getOptions.reposname}/collaborators`, 'get', {}, {
+        headers: {
+          'Accept': previewAccept,
+          'Authorization': `token ${process.env.githubToken}`
+        }
+      }).then((res: any) => {
+        return res && res.data
+      })
+    }])
   },
   // check whether a user is a collaborator
   checkCollaborator (checkOptions: any) {
@@ -290,7 +278,6 @@ export const reposActions = {
           'Authorization': `token ${process.env.githubToken}`
         }
       }).then((res: any) => {
-        console.log(res.data)
         return res.data
       })
     }])
@@ -311,14 +298,6 @@ export const reposActions = {
       })
     }])
   },
-  // 获取上年度的commit活动数据
-  getLastyearCommits (getOptions: any) {
-    return request(`/repos/${getOptions.ownername}/${getOptions.reposname}/stats/commit_activity`, 'get', {})
-      .then((res: any) => {
-        console.log(res.data)
-        return res.data
-      })
-  },
   // list milestones for a repository
   listMilestones (listOptions: any) {
     return request(`/repos/${listOptions.ownername}/${listOptions.reposname}/milestones`, 'get', {}, {
@@ -326,7 +305,6 @@ export const reposActions = {
         'Accept': 'application/vnd.github.jean-grey-preview+json'
       }
     }).then((res: any) => {
-      console.log(res.data)
       return res.data
     })
   },
@@ -339,7 +317,6 @@ export const reposActions = {
           'Authorization': `token ${process.env.githubToken}`
         }
       }).then((res: any) => {
-        console.log(res.data)
         return res.data
       })
     }])
@@ -347,13 +324,12 @@ export const reposActions = {
   // update a milestone
   editMilestone (editOptions: any) {
     return promiseCompose([getToken, () => {
-      return request(`/repos/${editOptions.ownername}/${editOptions.reposname}/milestone/${editOptions.number}`, 'patch', editOptions.data, {
+      return request(`/repos/${editOptions.ownername}/${editOptions.reposname}/milestones/${editOptions.number}`, 'patch', editOptions.data, {
         headers: {
           'Accept': 'application/vnd.github.jean-grey-preview+json',
           'Authorization': `token ${process.env.githubToken}`
         }
       }).then((res: any) => {
-        console.log(res.data)
         return res.data
       })
     }])
@@ -381,7 +357,6 @@ export const reposActions = {
         'Accept': acceptType
       }  
     }).then((res: any) => {
-      console.log(res.data)
       return res.data
     })
   },
@@ -408,7 +383,6 @@ export const reposActions = {
           'Accept': acceptType
         }   
       }).then((res: any) => {
-        console.log(res.data)
         return res.data
       })
     }])
@@ -434,12 +408,27 @@ export const reposActions = {
 export const reposStrategies: {[key: string]: any} = {
   'ls': {
     '-r': function () {
+      function dataShow (showlist: any) {
+        let dataTable: any = createTable({
+          head: ['name', 'description', 'detailUrl(cmd+click)'],
+          colWidths: [30, 50, 80],
+          wordWrap: true
+        })
+        showlist.forEach((item: any) => {
+          dataTable.push([item.name, item.description || 'no description', getHyperlinkText(item.html_url)])
+        })
+        console.log(dataTable.toString())
+      }
       if (process.env.githubUserMode === 'target') {
         getUserName((ownername: string) => {
-          reposActions.getReposForUser(ownername)
+          reposActions.getReposForUser(ownername).then((resdata: any) => {
+            dataShow(resdata)
+          })
         }, true)
       } else {
-        reposActions.getAll()
+        reposActions.getAll().then((resdata: any) => {
+          dataShow(resdata)
+        })
       }
     },
     '-b': function () {
@@ -447,6 +436,15 @@ export const reposStrategies: {[key: string]: any} = {
         reposActions.getBranches({
           ownername: ownername,
           reposname: reposname
+        }).then((resdata: any) => {
+          let dataTable: any = createTable({
+            head: ['name', 'latest commit sha'],
+            colWidths: [20, 60]
+          })
+          resdata.forEach((item: any) => {
+            dataTable.push([item.name, item.commit.sha])
+          })
+          console.log(dataTable.toString())
         })
       })
     },
@@ -455,6 +453,10 @@ export const reposStrategies: {[key: string]: any} = {
         reposActions.getTopics({
           ownername: ownername,
           reposname: reposname
+        }).then((resdata: any) => {
+          if (resdata.names.length === 0) {
+            info('the repository you select has no topics')
+          }
         })
       })
     },
@@ -463,29 +465,68 @@ export const reposStrategies: {[key: string]: any} = {
         reposActions.getContributors({
           ownername: ownername,
           reposname: reposname
+        }).then((resdata: any) => {
+          let dataTable: any = createTable({
+            head: ['name', 'detailUrl(cmd+click)'],
+            colWidths: [20, 80]
+          })
+          resdata.forEach((item: any) => {
+            dataTable.push([item.login, getHyperlinkText(item.html_url)])
+          })
+          console.log(dataTable.toString())
         })
       })
     },
     '-s': function () {
+      function dataShow (datalist: any) {
+        let dataTable: any = createTable({
+          head: ['name', 'ownername', 'description', 'detailUrl(cmd+click)'],
+          colWidths: [24, 20, 40, 80],
+          wordWrap: true
+        })
+        datalist.forEach((item: any) => {
+          dataTable.push([item.name, item.owner.login, item.description || 'no description', getHyperlinkText(item.html_url)])
+        })
+        console.log(dataTable.toString())
+      }
       if (process.env.githubUserMode === 'target') {
         getUserName((targetName: string) => {
           reposActions.getStarredReposForUser({
             ownername: targetName
+          }).then((resdata: any) => {
+            dataShow(resdata)
           })
         }, true)
       } else {
-        reposActions.getStarredRepos()
+        reposActions.getStarredRepos().then((resdata: any) => {
+          dataShow(resdata)
+        })
       }
     },
     '-w': function () {
-      if (process.env.gitUserMode === 'target') {
+      function dataShow (datalist: any) {
+        let dataTable: any = createTable({
+          head: ['name', 'owner', 'description', 'detailUrl(cmd+click)'],
+          colWidths: [24, 20, 40, 80],
+          wordWrap: true
+        })
+        datalist.forEach((item: any) => {
+          dataTable.push([item.name, item.owner.login, item.description || 'no description', getHyperlinkText(item.html_url)])
+        })
+        console.log(dataTable.toString())
+      }
+      if (process.env.githubUserMode === 'target') {
         getUserName((targetName: string) => {
           reposActions.getWatchedReposForUser({
             ownername: targetName
+          }).then((resdata: any) => {
+            dataShow(resdata)
           })
-        })
+        }, true)
       } else {
-        reposActions.getWatchedRepos()
+        reposActions.getWatchedRepos().then((resdata: any) => {
+          dataShow(resdata)
+        })
       }
     },
     '-i': function () {
@@ -493,22 +534,38 @@ export const reposStrategies: {[key: string]: any} = {
         reposActions.getCommits({
           ownername: ownername,
           reposname: reposname
+        }).then((resdata: any) => {
+          let dataTable: any = createTable({
+            head: ['sha', 'author', 'commit message', 'commit date'],
+            colWidths: [15, 20, 40, 40],
+            wordWrap: true
+          })
+          resdata.forEach((item: any) => {
+            dataTable.push([item.sha, item.commit.author.name, item.commit.message, item.commit.author.date])
+          })
+          console.log(dataTable.toString())
         })
       })
     },
     '-o': function () {
+      // 无法开启目标用户模式
       selectReposWithMode((reposname: string, ownername: string) => {
         reposActions.getCollaborators({
           ownername: ownername,
           reposname: reposname
-        })
-      })
-    },
-    '-y': function () {
-      selectReposWithMode((reposname: string, ownername: string) => {
-        reposActions.getLastyearCommits({
-          ownername: ownername,
-          reposname: reposname
+        }).then((resdata: any) => {
+          let dataTable: any = createTable({
+            head: ['name', 'permissions'],
+            colWidths: [20, 60]
+          })
+          resdata.forEach((item: any) => {
+            dataTable.push([item.login, Object.keys(item.permissions).filter((keyItem: any) => {
+              return item.permissions[keyItem]
+            }).join(' ')])
+          })
+          console.log(dataTable.toString())
+        }).catch((err: any) => {
+          console.log(err)
         })
       })
     },
@@ -517,6 +574,15 @@ export const reposStrategies: {[key: string]: any} = {
         reposActions.listMilestones({
           ownername: ownername,
           reposname: reposname
+        }).then((resdata: any) => {
+          let dataTable: any = createTable({
+            head: ['title', 'state', 'description', 'detailUrl(cmd+click)'],
+            colWidths: [20, 20, 40, 80],
+            wordWrap: true
+          })
+          resdata.forEach((item: any) => {
+            dataTable.push([item.title, item.state, item.description, getHyperlinkText(item.html_url)])
+          })
         })
       })
     },
@@ -525,6 +591,15 @@ export const reposStrategies: {[key: string]: any} = {
         reposActions.listAllLabels({
           ownername: ownername,
           reposname: reposname
+        }).then((resdata: any) => {
+          let dataTable: any = createTable({
+            head: ['id', 'name', 'color'],
+            colWidths: [20, 20, 20]
+          })
+          resdata.forEach((item: any) => {
+            dataTable.push([item.id, item.name, item.color])
+          })
+          console.log(dataTable.toString())
         })
       })
     },
@@ -533,6 +608,20 @@ export const reposStrategies: {[key: string]: any} = {
         reposActions.listCommitComments({
           ownername: ownername,
           reposname: reposname
+        }).then((resdata: any) => {
+          let dataTable: any = createTable({
+            head: ['id', 'content', 'author', 'detailUrl(cmd+click)'],
+            colWidths: [10, 40, 20, 80],
+            wordWrap: true
+          })
+          if (resdata.length > 0) {
+            resdata.forEach((item: any) => {
+              dataTable.push([item.id, item.body, item.user.login, getHyperlinkText(item.html_url)])
+            })
+            console.log(dataTable.toString())
+          } else {
+            info('this repository has no comments')
+          }
         })
       })
     }
@@ -541,11 +630,25 @@ export const reposStrategies: {[key: string]: any} = {
     '-r': function () {
       askquestion([{
         type: 'input',
-        name: 'reposlist',
-        message: 'please input names of repositories(split with space):'
+        name: 'repos',
+        message: 'please input the name of the repository to be created:'
+      }, {
+        type: 'editor',
+        name: 'description',
+        message: 'please input the description of the repository to be created:'
       }], (answers: any) => {
-        reposActions.create(answers.reposlist.split(' ')).then((res: any) => {
-          console.log(res)
+        reposActions.create({
+          name: answers.repos,
+          description: answers.description
+        }).then((resdata: any) => {
+          success('repositories created sucess!')
+          let dataTable: any = createTable({
+            head: ['name', 'description', 'detailUrl(cmd+click)'],
+            colWidths: [20, 40, 80],
+            wordWrap: true
+          })
+          dataTable.push([resdata.name, resdata.description, getHyperlinkText(resdata.html_url)])
+          console.log(dataTable.toString())
         })
       })
     },
@@ -568,6 +671,15 @@ export const reposStrategies: {[key: string]: any} = {
             data: {
               permission: answers.permission
             }
+          }).then((resdata: any) => {
+            success('add collaborator success!')
+            let dataTable: any = createTable({
+              head: ['repos', 'inviter', 'invitee', 'reposUrl(cmd+click)'],
+              colWidths: [20, 20, 20, 80]
+            })
+            let thereposInfo = resdata.repository
+            dataTable.push([thereposInfo.name, resdata.inviter.login, resdata.invitee.login, getHyperlinkText(thereposInfo.html_url)])
+            console.log(dataTable.toString())
           })
         })
       })
@@ -596,6 +708,15 @@ export const reposStrategies: {[key: string]: any} = {
               state: answers.state,
               description: answers.description
             }
+          }).then((resdata: any) => {
+            success('create milestone success!')
+            let dataTable: any = createTable({
+              head: ['title', 'state', 'description', 'detailUrl(cmd+click)'],
+              colWidths: [20, 20, 40, 80],
+              wordWrap: true
+            })
+            dataTable.push([resdata.title, resdata.state, resdata.description, getHyperlinkText(resdata.html_url)])
+            console.log(dataTable.toString())
           })
         })
       })
@@ -618,6 +739,8 @@ export const reposStrategies: {[key: string]: any} = {
               name: answers.name,
               color: answers.color
             }
+          }).then((resdata: any) => {
+            success('add label success!')
           })
         })
       })
@@ -626,6 +749,7 @@ export const reposStrategies: {[key: string]: any} = {
   'et': {
     '-t': function () {
       selectReposWithMode((reposname: string, ownername: string) => {
+        console.log('askquestion')
         askquestion([{
           type: 'input',
           name: 'names',
@@ -637,6 +761,13 @@ export const reposStrategies: {[key: string]: any} = {
             data: {
               names: answers.names.split(' ')
             }
+          }).then((resdata: any) => {
+            success('replece labels success!')
+            let dataTable: any = createTable()
+            dataTable.push({
+              labels: resdata.names
+            })
+            console.log(dataTable.toString())
           })
         })
       })
@@ -665,17 +796,26 @@ export const reposStrategies: {[key: string]: any} = {
           ownername: ownername,
           reposname: reposname
         }).then((resdata: any) => {
-          let dataTable: any = createTable({
-            head: ['number', 'title', 'state', 'description', 'detailUrl']
-          })
-          resdata.forEach((item: any) => {
-            dataTable.push([item.number, item.title, item.state, item.description, getHyperlinkText('点击查看详情', item.html_url)])
-          })
+          let heads = [{
+            value: 'number',
+            type: 'title'
+          }, {
+            value: 'title',
+            type: 'title'
+          }, {
+            value: 'state',
+            type: 'title'
+          }, {
+            value: 'description',
+            type: 'description'
+          }]
           askquestion([{
             type: 'list',
             name: 'number',
             message: 'please select a milestone:',
-            choices: dataTable
+            choices: createChoiceTable(heads, resdata.map((item: any) => {
+              return [String(item.number), item.title, item.state, item.description]
+            }))
           }, {
             type: 'checkbox',
             name: 'changes',
@@ -689,8 +829,17 @@ export const reposStrategies: {[key: string]: any} = {
               reposActions.editMilestone({
                 ownername: ownername,
                 reposname: reposname,
-                number: selectAnswers.number[0],
+                number: selectAnswers.number.split('│')[1].trim(),
                 data: answers
+              }).then((resdata: any) => {
+                success('update milestone success!')
+                let dataTable: any = createTable({
+                  head: ['number', 'title', 'state', 'description', 'detailUrl(cmd+click)'],
+                  colWidths: [10, 20, 20, 40, 80],
+                  wordWrap: true
+                })
+                dataTable.push([resdata.number, resdata.title, resdata.state, resdata.description, resdata.html_url])
+                console.log(dataTable.toString())
               })
             })
           })
@@ -715,17 +864,23 @@ export const reposStrategies: {[key: string]: any} = {
           ownername: ownername,
           reposname: reposname
         }).then((resdata: any) => {
-          let dataTable: any = createTable({
-            head: ['id', 'name', 'color']
-          })
-          resdata.forEach((item: any) => {
-            dataTable.push([item.id, item.name, item.color])
-          })
+          let heads = [{
+            value: 'id',
+            type: 'title'
+          }, {
+            value: 'name',
+            type: 'title'
+          }, {
+            value: 'color',
+            type: 'title'
+          }]
           askquestion([{
             type: 'list',
             name: 'labelname',
             message: 'please select a label to change:',
-            choices: dataTable
+            choices: createChoiceTable(heads, resdata.map((item: any) => {
+              return [String(item.id), item.name, item.color]
+            }))
           }, {
             type: 'checkbox',
             name: 'changes',
@@ -739,8 +894,16 @@ export const reposStrategies: {[key: string]: any} = {
               reposActions.editLabel({
                 ownername: ownername,
                 reposname: reposname,
-                labelname: answers.labelname[1],
+                labelname: answers.labelname.split('│')[2].trim(),
                 data: theanswers
+              }).then((resdata: any) => {
+                success('update label success!')
+                let dataTable: any = createTable({
+                  head: ['id', 'name', 'color'],
+                  colWidths: [20, 20, 20]
+                })
+                dataTable.push([resdata.id, resdata.name, resdata.color])
+                console.log(dataTable.toString())
               })
             })
           })
@@ -752,20 +915,26 @@ export const reposStrategies: {[key: string]: any} = {
     '-r': function () {
       getUserName((ownername: string) => {
         reposActions.getAll().then((resdata: any) => {
-          let dataTable: any = createTable({
-            head: ['name', 'description', 'detailUrl']
-          })
-          resdata.forEach((item: any) => {
-            dataTable.push([item.name, item.description, getHyperlinkText('点击查看详情', item.html_url)])
-          })
+          let heads = [{
+            value: 'name',
+            type: 'title'
+          }, {
+            value: 'description',
+            type: 'description'
+          }, {
+            value: '查看详情(cmd+click)',
+            type: 'url'
+          }]
           askquestion([{
             type: 'checkbox',
             name: 'repos',
             message: 'please select some repositories to be removed:',
-            choices: dataTable
+            choices: createChoiceTable(heads, resdata.map((item: any) => {
+              return [item.name, item.description || 'no description', item.html_url]
+            }))
           }], (answers: any) => {
             reposActions.delete(answers.repos.map((item: any) => {
-              return item[0]
+              return item.split('│')[1].trim()
             }))
           })
         })
@@ -781,7 +950,7 @@ export const reposStrategies: {[key: string]: any} = {
             head: ['number', 'title', 'state', 'description', 'detailUrl']
           })
           resdata.forEach((item: any) => {
-            dataTable.push([item.number, item.title, item.state, item.description, getHyperlinkText('点击查看详情', item.html_url)])
+            dataTable.push([item.number, item.title, item.state, item.description, getHyperlinkText(item.html_url)])
           })
           askquestion([{
             type: 'checkbox',
