@@ -32,7 +32,7 @@ const commandTypeObject: {[key: string]: any} = {
   'et': {
     message: 'edit issues actions(编辑issues数据)',
     childOptions: {
-      '-s': 'edit an issue',
+      '-i': 'edit an issue',
       '-c': 'edit an comment of an issue',
       '-r': 'replace labels for an issue'
     }

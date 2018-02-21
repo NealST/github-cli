@@ -2,7 +2,7 @@
 
 let axios = require('axios')
 import spinner from './spinner'
-import { error } from './output';
+import { error, success } from './output';
 export const thedomain = 'https://api.github.com'
 export const previewAccept = 'application/vnd.github.mercy-preview+json'
 
@@ -152,6 +152,10 @@ export const request = function (url: string, type: string, data: any, requestOp
     axios(configOptions).catch((err: any) => {
       reject(err)
     }).then((res: any) => {
+      // 备注，star仓库等操作成功后也会返回204
+      if (res.status === 204) {
+        success('delete success!')
+      }
       resolve(res)
     })
   })).catch((err: any) => {
@@ -162,6 +166,10 @@ export const request = function (url: string, type: string, data: any, requestOp
       if (err.response.status === 403) {
         error('your authentication is forbidden')
       }
+      if (err.response.status === 410) {
+        error('current action is disabled or deprecated')
+      }
+      // 有些查看操作，checkcolloborators如果结果为否会返回404
     }
     console.log(err)
     process.exit()

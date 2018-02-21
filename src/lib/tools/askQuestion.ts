@@ -8,7 +8,7 @@ import {yellow} from 'chalk'
 const width_rule: any = {
   title: 20,
   description: 40,
-  url: 40
+  url: 60
 }
 
 interface questionObject {

@@ -1,9 +1,10 @@
 import {request} from '../tools/request'
-import { getToken, selectRepos } from '../tools/verification';
-import askquestion from '../tools/askQuestion';
+import { getToken, selectRepos, selectReposWithMode } from '../tools/verification';
+import askquestion, {createChoiceTable} from '../tools/askQuestion';
 import createTable from '../tools/tableShow';
 import getHyperlinkText from '../tools/hyperlinker';
 import promiseCompose from '../tools/promiseCompose';
+import { info, success } from '../tools/output';
 const acceptType = 'application/vnd.github.jean-grey-preview+json'
 
 export const issueActions = {
@@ -16,7 +17,6 @@ export const issueActions = {
           'Accept': acceptType
         }
       }).then((res: any) => {
-        console.log(res.data)
         return res.data
       })
     }])
@@ -30,8 +30,7 @@ export const issueActions = {
           'Accept': acceptType
         }  
       }).then((res: any) => {
-          console.log(res.data)
-          return res.data
+        return res.data
       })
     }])
   },
@@ -42,7 +41,6 @@ export const issueActions = {
         'Accept': acceptType
       }  
     }).then((res: any) => {
-      console.log(res.data)
       return res.data
     })
   },
@@ -65,7 +63,6 @@ export const issueActions = {
           'Authorization': `token ${process.env.githubToken}`
         }  
       }).then((res: any) => {
-        console.log(res.data)
         return res.data
       })
     }])
@@ -73,7 +70,6 @@ export const issueActions = {
   // list assignees
   listAssignees (listOptions: any) {
     return request(`/repos/${listOptions.ownername}/${listOptions.reposname}/assignees`, 'get', {}).then((res: any) => {
-      console.log(res.data)
       return res.data
     })
   },
@@ -81,7 +77,6 @@ export const issueActions = {
   checkAssignee (checkOptions: any) {
     return request(`/repos/${checkOptions.ownername}/${checkOptions.reposname}/assignees/${checkOptions.assigneeName}`, 'get', {})
       .then((res: any) => {
-        console.log(res.data)
         return res.data
       })
   },
@@ -93,7 +88,6 @@ export const issueActions = {
           'Authorization': `token ${process.env.githubToken}`
         }  
       }).then((res: any) => {
-        console.log(res.data)
         return res.data
       })
     }])
@@ -106,7 +100,6 @@ export const issueActions = {
           'Authorization': `token ${process.env.githubToken}`
         }  
       }).then((res: any) => {
-        console.log(res.data)
         return res.data
       })
     }])
@@ -115,7 +108,6 @@ export const issueActions = {
   listComments (listOptions: any) {
     return request(`/repos/${listOptions.ownername}/${listOptions.reposname}/issues/${listOptions.number}/comments`, 'get', {})
       .then((res: any) => {
-        console.log(res.data)
         return res.data
       })
   },
@@ -123,7 +115,6 @@ export const issueActions = {
   listCommentsForRepo (listOptions: any) {
     return request(`/repos/${listOptions.ownername}/${listOptions.reposname}/issues/comments`, 'get', {})
       .then((res: any) => {
-        console.log(res.data)
         return res.data
       })
   },
@@ -136,7 +127,6 @@ export const issueActions = {
           'Accept': 'application/vnd.github.machine-man-preview'
         }  
       }).then((res: any) => {
-        console.log(res.data)
         return res.data
       })
     }])
@@ -150,7 +140,6 @@ export const issueActions = {
           'Accept': 'application/vnd.github.machine-man-preview'
         }  
       }).then((res: any) => {
-        console.log(res.data)
         return res.data
       })
     }])
@@ -166,8 +155,7 @@ export const issueActions = {
           }  
         })
       })).then((res: any) => {
-        console.log(res.data)
-        return res.data
+        return res
       })
     }])
   },
@@ -180,7 +168,6 @@ export const issueActions = {
           'Accept': acceptType
         }  
       }).then((res: any) => {
-        console.log(res.data)
         return res.data
       })
     }])
@@ -194,7 +181,6 @@ export const issueActions = {
           'Accept': acceptType
         }  
       }).then((res: any) => {
-        console.log(res.data)
         return res.data
       })
     }])
@@ -206,7 +192,6 @@ export const issueActions = {
         'Accept': acceptType
       }
     }).then((res: any) => {
-      console.log(res.data)
       return res.data
     })
   },
@@ -221,7 +206,6 @@ export const issueActions = {
           }
         })
       })).then((res: any) => {
-        console.log(res)
         return res.data
       })
     }])
@@ -234,35 +218,42 @@ export const issueActions = {
           'Authorization': `token ${process.env.githubToken}`,
           'Accept': acceptType
         }
-      }).then((res: any) => {
-        console.log(res)
       })
     }])
   }
 }
 
 const selectIssue = function (fn: Function) {
-  selectRepos((reposname: string, targetName: string) => {
+  selectReposWithMode((reposname: string, targetName: string) => {
     issueActions.listForRepos({
       ownername: targetName,
       reposname: reposname
-    }).then((res: any) => {
-      let dataTable: any = createTable({
-        head: ['title', 'content', 'number', 'detailUrl']
-      })
-      res[0].forEach((item: any) => {
-        dataTable.push([item.title, item.body, item.number, getHyperlinkText(item.html_url)])
-      })
+    }).then((resdata: any) => {
+      let heads: any = [{
+        value: 'number',
+        type: 'title'
+      }, {
+        value: 'title',
+        type: 'title'
+      }, {
+        value: 'content',
+        type: 'description'
+      }, {
+        value: 'detailUrl(cmd+click)',
+        type: 'url'
+      }]
       askquestion([{
         type: 'list',
         name: 'issueItem',
         message: 'please select a issue from this list:',
-        choices: dataTable
+        choices: createChoiceTable(heads, resdata.map((item: any) => {                                                 
+          return [String(item.number), item.title, item.body || 'no content', item.html_url]
+        }))
       }], function (answers: any) {
-        fn(targetName, reposname, answers.issueItem[2])
+        fn(targetName, reposname, answers.issueItem.split('│')[1].trim())
       })
     })
-  }, true, 'list')
+  })
 }
 
 export const issueStrategies: any = {
@@ -288,24 +279,60 @@ export const issueStrategies: any = {
           filter: answers.filter.split(' ')[0],
           state: answers.state,
           sort: answers.sort
+        }).then((resdata: any) => {
+          if (resdata.length === 0) {
+            info('no issues existed!')
+          } else {
+            let dataTable: any = createTable({
+              head: ['number', 'title', 'creator', 'state', 'detailUrl(cmd+click)'],
+              colWidths: [10, 20, 20, 10, 60]
+            })
+            resdata.forEach((item: any) => {
+              dataTable.push([item.number, item.title, item.user.login, item.state, item.html_url])
+            })
+            console.log(dataTable.toString())
+          }
         })
       })
     },
     '-r': function () {
-      selectRepos((reposname: string, targetName: string) => {
+      selectReposWithMode((reposname: string, targetName: string) => {
         issueActions.listForRepos({
           ownername: targetName,
           reposname: reposname
+        }).then((resdata: any) => {
+          if (resdata.length === 0) {
+            info('no issues existed!')
+          } else {
+            let dataTable: any = createTable({
+              head: ['number', 'title', 'state', 'content', 'creator', 'detailUr(cmd+click)'],
+              colWidths: [10, 20, 10, 40, 10, 50],
+              wordWrap: true
+            })
+            resdata.forEach((item: any) => {
+              dataTable.push([item.number, item.title, item.state, item.body || 'no content', item.user.login, item.html_url])
+            })
+            console.log(dataTable.toString())
+          }
         })
-      }, true, 'list')
+      })
     },
     '-a': function () {
-      selectRepos((reposname: string, targetName: string) => {
+      selectReposWithMode((reposname: string, targetName: string) => {
         issueActions.listAssignees({
           ownername: targetName,
           reposname: reposname
+        }).then((resdata: any) => {
+          let dataTable: any = createTable({
+            head: ['name', 'detailUrl(cmd+click)'],
+            colWidths: [20, 60]
+          })
+          resdata.forEach((item: any) => {
+            dataTable.push([item.login, item.html_url])
+          })
+          console.log(dataTable.toString())
         })
-      }, true, 'list')
+      })
     },
     '-c': function () {
       selectIssue(function (targetName: string, reposname: string, theIssueNumber: number) {
@@ -314,21 +341,49 @@ export const issueStrategies: any = {
           reposname: reposname,
           number: theIssueNumber,
           data: {}
+        }).then((resdata: any) => {
+          if (resdata.length === 0) {
+            info('no comments existed!')
+          } else {
+            let dataTable: any = createTable({
+              head: ['id', 'author', 'content', 'detailUrl(cmd+click)'],
+              colWidths: [10, 20, 40, 40],
+              wordWrap: true
+            })
+            resdata.forEach((item: any) => {
+              dataTable.push([item.id, item.user.login, item.body, item.html_url])
+            })
+            console.log(dataTable.toString())
+          }
         })
       })
     },
     '-cr': function () {
-      selectRepos((reposname: string, targetName: string) => {
+      selectReposWithMode((reposname: string, targetName: string) => {
         issueActions.listCommentsForRepo({
           ownername: targetName,
           reposname: reposname
+        }).then((resdata: any) => {
+          if (resdata.length === 0) {
+            info('no comments existed!')
+          } else {
+            let dataTable: any = createTable({
+              head: ['id', 'author', 'content', 'detailUrl(cmd+click)'],
+              colWidths: [10, 20, 40, 50],
+              wordWrap: true
+            })
+            resdata.forEach((item: any) => {
+              dataTable.push([item.id, item.user.login, item.body, item.html_url])
+            })
+            console.log(dataTable.toString())
+          }
         })
-      }, true, 'list')
+      })
     }
   },
   'cr': {
     '-r': function () {
-      selectRepos((reposname: string, targetName: string) => {
+      selectReposWithMode((reposname: string, targetName: string) => {
         askquestion([{
           type: 'input',
           name: 'title',
@@ -343,19 +398,29 @@ export const issueStrategies: any = {
             reposname: reposname,
             data: {
               title: answers.title,
-              content: answers.content
+              body: answers.content
             }
+          }).then((resdata: any) => {
+            success('create issues success!')
+            let dataTable: any = createTable({
+              head: ['number', 'title', 'content', 'detailUrl(cmd+click)'],
+              colWidths: [10, 20, 20, 40, 40],
+              wordWrap: true
+            })
+            dataTable.push([resdata.number, resdata.title, resdata.body, resdata.html_url])
+            console.log(dataTable.toString())
           })
         }) 
-      }, true, 'list')
+      })
     },
     '-a': function () {
       selectIssue(function (ownername: string, reposname: string, issuenumber: number) {
         askquestion([{
           type: 'input',
           name: 'assignees',
-          message: 'please input some assignees of this issue'
+          message: 'please input some assignees of this issue(split with space):'
         }], function (answers: any) {
+          console.log(answers.assignees.split(' '))
           issueActions.addAssignees({
             ownername: ownername,
             reposname: reposname,
@@ -363,6 +428,8 @@ export const issueStrategies: any = {
             data: {
               assignees: answers.assignees.split(' ')
             }
+          }).then((resdata: any) => {
+            success('add assignees success!')
           })
         })
       })
@@ -381,29 +448,48 @@ export const issueStrategies: any = {
             data: {
               body: answers.content
             }
+          }).then((resdata: any) => {
+            success('create comment success!')
+            let dataTable: any = createTable({
+              head: ['id', 'content', 'detailUrl(cmd+click)'],
+              colWidths: [20, 40, 60],
+              wordWrap: true
+            })
+            dataTable.push([resdata.id, resdata.body, resdata.html_url])
+            console.log(dataTable.toString())
           })
         })
       })
     },
-    '－l': function () {
+    '-l': function () {
       selectIssue(function (ownername: string, reposname: string, issuenumber: number) {
         askquestion([{
           type: 'input',
           name: 'labels',
-          message: 'please input some labels for this issue:'
+          message: 'please input the names of the labels to be added to this issue(split with space):'
         }], function (answers: any) {
           issueActions.addLabelsForIssue({
             ownername: ownername,
             reposname: reposname,
             number: issuenumber,
             data: answers.labels.split(' ')
+          }).then((resdata: any) => {
+            success('add labels to issue success!')
+            let dataTable: any = createTable({
+              head: ['id', 'name', 'color'],
+              colWidths: [20, 20, 20]
+            })
+            resdata.forEach((item: any) => {
+              dataTable.push([item.id, item.name, item.color])
+            })
+            console.log(dataTable.toString())
           })
         })
       })
     }
   },
   'et': {
-    '-s': function () {
+    '-i': function () {
       selectIssue(function (ownername: string, reposname: string, issuenumber: number) {
         askquestion([{
           type: 'input',
@@ -422,27 +508,42 @@ export const issueStrategies: any = {
               title: answers.title,
               body: answers.content
             }
+          }).then((resdata: any) => {
+            success('update issue success!')
+            let dataTable: any = createTable({
+              head: ['number', 'title', 'content', 'detailUrl(cmd+click)'],
+              colWidths: [10, 20, 40, 60],
+              wordWrap: true
+            })
+            dataTable.push([resdata.number, resdata.title, resdata.body, resdata.html_url])
+            console.log(dataTable.toString())
           })
         })
       })
     },
     '-c': function () {
-      selectRepos((reposname: string, targetName: string) => {
+      selectReposWithMode((reposname: string, targetName: string) => {
         issueActions.listCommentsForRepo({
           ownername: targetName,
           reposname: reposname
         }).then((resdata: any) => {
-          let dataTable: any = createTable({
-            head: ['id', 'content', 'detailUrl']
-          })
-          resdata.forEach((item: any) => {
-            dataTable.push([item.id, item.body, getHyperlinkText(item.html_url)])
-          })
+          let heads = [{
+            value: 'id',
+            type: 'title'
+          }, {
+            value: 'content',
+            type: 'description'
+          }, {
+            value: 'detailUrl(cmd+click)',
+            type: 'url'
+          }]
           askquestion([{
             type: 'list',
             name: 'comment',
             message: 'please select a comment:',
-            choices: dataTable
+            choices: createChoiceTable(heads, resdata.map((item: any) => {
+              return [String(item.id), item.body, item.html_url]
+            }))
           }, {
             type: 'input',
             name: 'content',
@@ -451,14 +552,23 @@ export const issueStrategies: any = {
             issueActions.editComment({
               ownername: targetName,
               reposname: reposname,
-              id: answers.comment[0],
+              id: answers.comment.split('│')[1].trim(),
               data: {
                 body: answers.content
               }
+            }).then((resdata: any) => {
+              success('update this comment success!')
+              let dataTable: any = createTable({
+                head: ['id', 'content', 'detailUrl(cmd+click)'],
+                colWidths: [20, 40, 60],
+                wordWrap: true
+              })
+              dataTable.push([resdata.id, resdata.body, resdata.html_url])
+              console.log(dataTable.toString())
             })
           })
         })
-      }, true, 'list')
+      })
     },
     '-r': function () {
       selectIssue(function (ownername: string, reposname: string, issuenumber: number) {
@@ -472,6 +582,16 @@ export const issueStrategies: any = {
             reposname: reposname,
             number: issuenumber,
             data: answers.labels.split(' ')
+          }).then((resdata: any) => {
+            success('replace labels success!')
+            let dataTable: any = createTable({
+              head: ['id', 'name', 'color'],
+              colWidths: [20, 20, 20]
+            })
+            resdata.forEach((item: any) => {
+              dataTable.push([item.id, item.name, item.color])
+            })
+            console.log(dataTable.toString())
           })
         })
       })
@@ -492,7 +612,7 @@ export const issueStrategies: any = {
               return item.login
             })
           }], function (answers: any) {
-            issueActions.removeLabelsForIssue({
+            issueActions.deleteAssignees({
               ownername: ownername,
               reposname: reposname,
               number: issuenumber,
@@ -505,33 +625,39 @@ export const issueStrategies: any = {
       })
     },
     '-c': function () {
-      selectRepos(function (reposname: string, targetName: string) {
+      selectReposWithMode(function (reposname: string, targetName: string) {
         issueActions.listCommentsForRepo({
           ownername: targetName,
           reposname: reposname
         }).then((resdata: any) => {
-          let dataTable: any = createTable({
-            head: ['id', 'content', 'detailUrl']
-          })
-          resdata.forEach((item: any) => {
-            dataTable.push([item.id, item.body, getHyperlinkText(item.html_url)])
-          })
+          let heads = [{
+            value: 'id',
+            type: 'title'
+          }, {
+            value: 'content',
+            type: 'description'
+          }, {
+            value: 'detailUrl(cmd+click)',
+            type: 'url'
+          }]
           askquestion([{
             type: 'checkbox',
             name: 'comments',
             message: 'please select some comments to be removed:',
-            choices: dataTable
+            choices: createChoiceTable(heads, resdata.map((item: any) => {
+              return [String(item.id), item.body, item.html_url]
+            }))
           }], function (answers: any) {
             issueActions.deleteComment({
               ownername: targetName,
               reposname: reposname,
               ids: answers.comments.map((item: any) => {
-                return item[0]
+                return item.split('│')[1].trim()
               })
             })
           })
         })
-      }, true, 'list')
+      })
     },
     '-l': function () {
       selectIssue(function (ownername: string, reposname: string, issuenumber: number) {
@@ -552,27 +678,37 @@ export const issueStrategies: any = {
               reposname: reposname,
               number: issuenumber
             }).then((resdata: any) => {
-              let dataTable: any = createTable({
-                head: ['id', 'name', 'detailUrl']
-              })
-              resdata.forEach((item: any) => {
-                dataTable.push([item.id, item.name, item.url])
-              })
-              askquestion([{
-                type: 'checkbox',
-                name: 'labels',
-                message: 'please select some labels to be removed:',
-                choices: dataTable
-              }], function (answers: any) {
-                issueActions.removeLabelForIssue({
-                  ownername: ownername,
-                  reposname: reposname,
-                  number: issuenumber,
-                  labelNames: answers.labels.map((item: any) => {
-                    return item[1]
+              if (resdata.length > 0) {
+                let heads = [{
+                  value: 'id',
+                  type: 'title'
+                }, {
+                  value: 'name',
+                  type: 'title'
+                }, {
+                  value: 'detailUrl(cmd+click)',
+                  type: 'url'
+                }]
+                askquestion([{
+                  type: 'checkbox',
+                  name: 'labels',
+                  message: 'please select some labels to be removed:',
+                  choices: createChoiceTable(heads, resdata.map((item: any) => {
+                    return [String(item.id), item.name, item.html_url]
+                  }))
+                }], function (answers: any) {
+                  issueActions.removeLabelForIssue({
+                    ownername: ownername,
+                    reposname: reposname,
+                    number: issuenumber,
+                    labelNames: answers.labels.map((item: any) => {
+                      return item.split('│')[2].trim()
+                    })
                   })
                 })
-              })
+              } else {
+                info('no labels existed! you have nothing to remove')
+              }
             })
           }
         })

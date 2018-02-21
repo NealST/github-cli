@@ -87,17 +87,18 @@ export const reposActions = {
     })
   },
   transfer (options: any) {
+    console.log(options)
     return promiseCompose([getToken, () => {
       return Promise.all(options.reposnamelist.map((item: any) => {
         return request(`/repos/${options.ownername}/${item}/transfer`, 'post', {
           new_owner: options.newowner
         }, {
           headers: {
-            'Authorization': `token ${process.env.githubToken}`
+            'Authorization': `token ${process.env.githubToken}`,
+            'Accept': 'application/vnd.github.nightshade-preview+json'
           }
         })
       })).then((res: any) => {
-        console.log(res)
         return res
       })
     }])
@@ -145,7 +146,6 @@ export const reposActions = {
           }
         })
       })).then((res: any) => {
-        console.log(res)
         return res
       })
     }])
@@ -159,7 +159,6 @@ export const reposActions = {
           }
         })
       })).then((res: any) => {
-        console.log(res)
         return res
       })
     }])
@@ -173,7 +172,6 @@ export const reposActions = {
           }
         })
       })).then((res: any) => {
-        console.log(res)
         return res
       })
     }])
@@ -210,7 +208,6 @@ export const reposActions = {
           }
         })
       })).then((res: any) => {
-        console.log(res)
         return res
       })
     }])
@@ -248,10 +245,10 @@ export const reposActions = {
     return promiseCompose([getToken, () => {
       return request(`/repos/${checkOptions.ownername}/${checkOptions.reposname}/collaborators/${checkOptions.username}`, 'get', {}, {
         headers: {
-          'Accept': previewAccept
+          'Accept': 'application/vnd.github.hellcat-preview+json',
+          'Authorization': `token ${process.env.githubToken}`
         }
       }).then((res: any) => {
-        console.log(res.data)
         return res.data
       })
     }])
@@ -261,10 +258,10 @@ export const reposActions = {
     return promiseCompose([getToken, () => {
       return request(`/repos/${checkOptions.ownername}/${checkOptions.reposname}/collaborators/${checkOptions.username}/permission`, 'get', {}, {
         headers: {
-          'Accept': previewAccept
+          'Accept': previewAccept,
+          'Authorization': `token ${process.env.githubToken}`
         }
       }).then((res: any) => {
-        console.log(res.data)
         return res.data
       })
     }])
@@ -345,7 +342,6 @@ export const reposActions = {
           }
         })
       })).then((res: any) => {
-        console.log(res)
         return res
       })
     }])
@@ -398,7 +394,6 @@ export const reposActions = {
           }
         })
       })).then((res: any) => {
-        console.log(res)
         return res
       })
     }])
@@ -946,23 +941,35 @@ export const reposStrategies: {[key: string]: any} = {
           ownername: ownername,
           reposname: reposname
         }).then((resdata: any) => {
-          let dataTable: any = createTable({
-            head: ['number', 'title', 'state', 'description', 'detailUrl']
-          })
-          resdata.forEach((item: any) => {
-            dataTable.push([item.number, item.title, item.state, item.description, getHyperlinkText(item.html_url)])
-          })
+          let heads: any = [{
+            value: 'number',
+            type: 'title'
+          }, {
+            value: 'title',
+            type: 'title'
+          }, {
+            value: 'state',
+            type: 'title'
+          }, {
+            value: 'description',
+            type: 'description'
+          }, {
+            value: 'detailUrl(cmd+click)',
+            type: 'url'
+          }]
           askquestion([{
             type: 'checkbox',
             name: 'numbers',
-            message: 'please select a milestone:',
-            choices: dataTable
+            message: 'please select some milestones:',
+            choices: createChoiceTable(heads, resdata.map((item: any) => {
+              return [String(item.number), item.title, item.state, item.description, item.html_url]
+            }))
           }], (selectAnswers: any) => {
             reposActions.deleteMilestone({
               ownername: ownername,
               reposname: reposname,
               numbers: selectAnswers.numbers.map((item: any) => {
-                return item[0]
+                return item.split('│')[1].trim()
               })
             })
           })
@@ -1022,6 +1029,8 @@ export const reposStrategies: {[key: string]: any} = {
         reposActions.setRepoSubscription({
           reposnamelist: reposnamelist,
           ownername: ownername
+        }).then((res: any) => {
+          success('add subscription success!')
         })
       }, true)
     },
@@ -1030,6 +1039,8 @@ export const reposStrategies: {[key: string]: any} = {
         reposActions.starRepos({
           reposnamelist: reposnamelist,
           ownername: ownername
+        }).then((res: any) => {
+          success('star the repository success!')
         })
       }, true)
     },
@@ -1038,6 +1049,8 @@ export const reposStrategies: {[key: string]: any} = {
         reposActions.unStarRepos({
           reposnamelist: reposnamelist,
           ownername: ownername
+        }).then((res: any) => {
+          success('unstar the repository success!')
         })
       }, true)
     },
@@ -1046,6 +1059,8 @@ export const reposStrategies: {[key: string]: any} = {
         reposActions.unWatchRepos({
           reposnamelist: reposnamelist,
           ownername: ownername
+        }).then((res: any) => {
+          success('unwatch the repository success!')
         })
       }, true)
     }
@@ -1077,13 +1092,15 @@ export const reposStrategies: {[key: string]: any} = {
             ownername: ownername,
             reposname: reposname,
             username: answers.username
+          }).then((resdata: any) => {
+            info(`${answers.username}has the permission ${resdata.permission}`)
           })
         })
       })
     }
   },
   'ts': function () {
-    selectRepos((reposnamelist: Array<string>, ownername: string) => {
+    selectReposWithMode((reposnamelist: Array<string>, ownername: string) => {
       askquestion([{
         type: 'input',
         name: 'newowner',
@@ -1093,35 +1110,19 @@ export const reposStrategies: {[key: string]: any} = {
           ownername: ownername,
           reposnamelist: reposnamelist,
           newowner: answers.newowner
+        }).then((res: any) => {
+          success('transfer the repository success!')
         })
       })
-    })
-  },
-  'cm': function () {
-    selectReposWithMode((reposname: string, ownername: string) => {
-      askquestion([{
-        type: 'input',
-        name: 'head',
-        message: 'please input the head branch name:'
-      }, {
-        type: 'input',
-        name: 'base',
-        message: 'please input the base branch name:'
-      }], (answers: any) => {
-        reposActions.compareCommits({
-          ownername: ownername,
-          reposname: reposname,
-          base: answers.base,
-          head: answers.head
-        })
-      })
-    })
+    }, 'checkbox')
   },
   'fk': function () {
     selectRepos((reposnamelist: Array<string>, ownername: string) => {
       reposActions.fork({
         ownername: ownername,
         reposnamelist: reposnamelist
+      }).then((res: any) => {
+        success('fork the repository success!')
       })
     }, true)
   }

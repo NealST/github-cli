@@ -71,9 +71,6 @@ const commandTypeObject: {[key: string]: any} = {
   'ts': {
     message: 'transfer repositories to another user'
   },
-  'cm': {
-    message: 'compare the content of two different branch'
-  },
   'fk': {
     message: 'fork a repository'
   }
