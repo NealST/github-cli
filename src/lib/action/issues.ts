@@ -229,29 +229,33 @@ const selectIssue = function (fn: Function) {
       ownername: targetName,
       reposname: reposname
     }).then((resdata: any) => {
-      let heads: any = [{
-        value: 'number',
-        type: 'title'
-      }, {
-        value: 'title',
-        type: 'title'
-      }, {
-        value: 'content',
-        type: 'description'
-      }, {
-        value: 'detailUrl(cmd+click)',
-        type: 'url'
-      }]
-      askquestion([{
-        type: 'list',
-        name: 'issueItem',
-        message: 'please select a issue from this list:',
-        choices: createChoiceTable(heads, resdata.map((item: any) => {                                                 
-          return [String(item.number), item.title, item.body || 'no content', item.html_url]
-        }))
-      }], function (answers: any) {
-        fn(targetName, reposname, answers.issueItem.split('│')[1].trim())
-      })
+      if (resdata.length > 0) {
+        let heads: any = [{
+          value: 'number',
+          type: 'title'
+        }, {
+          value: 'title',
+          type: 'title'
+        }, {
+          value: 'content',
+          type: 'description'
+        }, {
+          value: 'detailUrl(cmd+click)',
+          type: 'url'
+        }]
+        askquestion([{
+          type: 'list',
+          name: 'issueItem',
+          message: 'please select a issue from this list:',
+          choices: createChoiceTable(heads, resdata.map((item: any) => {                                                 
+            return [String(item.number), item.title, item.body || 'no content', item.html_url]
+          }))
+        }], function (answers: any) {
+          fn(targetName, reposname, answers.issueItem.split('│')[1].trim())
+        })
+      } else {
+        info('no issues existed!please create it first')
+      }
     })
   })
 }

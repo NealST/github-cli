@@ -23,7 +23,7 @@ const commandTypeObject: { [key: string]: any } = {
   },
   'rt': {
     message: 'emojis action(表情回应)',
-    fontstext: 'react'
+    fontstext: 'reaction'
   },
   'rs': {
     message: 'repository action(仓库操作)',

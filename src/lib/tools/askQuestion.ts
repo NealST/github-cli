@@ -6,6 +6,7 @@ import { center } from 'wide-align'
 import {yellow} from 'chalk'
 
 const width_rule: any = {
+  number: 10,
   title: 20,
   description: 40,
   url: 60

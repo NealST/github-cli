@@ -22,7 +22,6 @@ const commandTypeObject: {[key: string]: any} = {
     childOptions: {
       '-p': 'create a pull request',
       '-pr': 'create a pull request review',
-      '-c': 'create a comment for an pull request',
       '－rp': 'create a review request for a pull request'
     }
   },

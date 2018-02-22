@@ -1,9 +1,12 @@
 import { previewAccept, request } from '../tools/request';
-import { getToken, selectRepos } from '../tools/verification';
-import askquestion from '../tools/askQuestion';
+import { getToken, selectRepos, selectReposWithMode, getUserName } from '../tools/verification';
+import askquestion, {createChoiceTable} from '../tools/askQuestion';
 import createTable from '../tools/tableShow';
 import getHyperlinkText from '../tools/hyperlinker';
 import promiseCompose from '../tools/promiseCompose';
+import { info, success } from '../tools/output';
+import { userStrategy } from './users';
+import { reposActions } from './repos';
 
 export const prActions = {
   // list all the pull requests of a repository
@@ -15,7 +18,6 @@ export const prActions = {
           'Accept': previewAccept
         }
       }).then((res: any) => {
-        console.log(res.data)
         return res.data
       })
     }])
@@ -26,10 +28,9 @@ export const prActions = {
       return request(`/repos/${createOptions.ownername}/${createOptions.reposname}/pulls`, 'post', createOptions.data, {
         headers: {
             'Authorization': `token ${process.env.githubToken}`,
-            'Accept': previewAccept
+            'Accept': 'application/vnd.github.jean-grey-preview+json'
           }  
       }).then((res: any) => {
-        console.log(res.data)
         return res.data
       })
     }])
@@ -43,7 +44,6 @@ export const prActions = {
           'Accept': previewAccept
         }  
       }).then((res: any) => {
-        console.log(res.data)
         return res.data
       })
     }])
@@ -72,16 +72,13 @@ export const prActions = {
               'Accept': previewAccept
             }  
           })
-      })).then((res: any) => {
-        return res
-      })
+      }))
     }])
   },
   // list reviews of a pull request
   listPrReviews (listOptions: any) {
     return request(`/repos/${listOptions.ownername}/${listOptions.reposname}/pulls/${listOptions.number}/reviews`, 'get', {})
       .then((res: any) => {
-        console.log(res.data)
         return res.data
       })
   },
@@ -95,7 +92,6 @@ export const prActions = {
           } 
         })
       })).then((res: any) => {
-        console.log(res)
         return res
       })
     }])
@@ -108,7 +104,6 @@ export const prActions = {
           'Authorization': `token ${process.env.githubToken}`
         }  
       }).then((res: any) => {
-        console.log(res.data)
         return res.data
       })
     }])
@@ -121,7 +116,6 @@ export const prActions = {
           'Authorization': `token ${process.env.githubToken}`
         }  
       }).then((res: any) => {
-        console.log(res.data)
         return res.data
       })
     }])
@@ -134,21 +128,9 @@ export const prActions = {
           'Authorization': `token ${process.env.githubToken}`
         }  
       }).then((res: any) => {
-        console.log(res.data)
         return res.data
       })
     }])
-  },
-  // get a single pull request
-  getSinglePr (getOptions: any) {
-    return request(`/repos/${getOptions.ownername}/${getOptions.reposname}/pulls/${getOptions.number}`, 'get', {}, {
-      headers: {
-        'Accept': 'application/vnd.github.v3.diff'
-      }  
-    }).then((res: any) => {
-      console.log(res.data)
-      return res.data
-    })
   },
   // dismiss a pull request review
   dismissPrReview (disOptions: any) {
@@ -158,7 +140,6 @@ export const prActions = {
           'Authorization': `token ${process.env.githubToken}`
         }
       }).then((res: any) => {
-        console.log(res.data)
         return res.data
       })
     }])
@@ -167,7 +148,6 @@ export const prActions = {
   listCommentsForPr (listOptions: any) {
     return request(`/repos/${listOptions.ownername}/${listOptions.reposname}/pulls/${listOptions.number}/comments`, 'get', {})
       .then((res: any) => {
-        console.log(res.data)
         return res.data
       })
   },
@@ -178,22 +158,8 @@ export const prActions = {
         'Accept': 'application/vnd.github.squirrel-girl-preview'
       }
     }).then((res: any) => {
-      console.log(res.data)
       return res.data
     })
-  },
-  // create a comment for a pull request
-  createComment (createOptions: any) {
-    return promiseCompose([getToken, () => {
-      return request(`/repos/${createOptions.ownername}/${createOptions.reposname}/pulls/${createOptions.number}/comments`, 'post', createOptions.data, {
-        headers: {
-          'Authorization': `token ${process.env.githubToken}`
-        }  
-      }).then((res: any) => {
-        console.log(res.data)
-        return res.data
-      })
-    }])
   },
   // edit a comment for repository pulls
   editComment (editOptions: any) {
@@ -203,7 +169,6 @@ export const prActions = {
           'Authorization': `token ${process.env.githubToken}`
         }  
       }).then((res: any) => {
-        console.log(res.data)
         return res.data
       })
     }])
@@ -217,10 +182,7 @@ export const prActions = {
             'Authorization': `token ${process.env.githubToken}`
           }
         })
-      })).then((res: any) => {
-        console.log(res)
-        return res.data
-      })
+      }))
     }])
   },
   // list review requests
@@ -246,7 +208,6 @@ export const prActions = {
           'Accept': 'application/vnd.github.thor-preview+json'
         }  
       }).then((res: any) => {
-        console.log(res.data)
         return res.data
       })
     }])
@@ -259,49 +220,74 @@ export const prActions = {
           'Authorization': `token ${process.env.githubToken}`,
           'Accept': 'application/vnd.github.thor-preview+json'
         }  
-      }).then((res: any) => {
-        console.log(res.data)
-        return res.data
       })
     }])
   }
 }
 
 const selectPr = function (fn: Function, type: string = 'list') {
-  selectRepos(function (reposname: string, targetName: string) {
+  selectReposWithMode(function (reposname: string, targetName: string) {
     prActions.listForRepos({
       ownername: targetName,
       reposname: reposname
     }).then(function (resdata: any) {
-      let dataTable: any = createTable({
-        head: ['number', 'state', 'title', 'body', 'detailUrl']
-      })
-      resdata.forEach((item: any) => {
-        dataTable.push([item.number, item.state, item.title, item.body, item.html_url])
-      })
-      askquestion([{
-        type: type,
-        name: 'thepr',
-        message: 'please select the pull requests you want:'
-      }], function (answers: any) {
-        let selectPrs = type === 'list' ? answers.thepr[0] : answers.thepr.map((item: any) => {
-          return item[0]
+      if (resdata.length > 0) {
+        let heads = [{
+          value: 'number',
+          type: 'number'
+        }, {
+          value: 'title',
+          type: 'title'
+        }, {
+          value: 'content',
+          type: 'description'
+        }, {
+          value: 'detailUrl(cmd+click)',
+          type: 'url'
+        }]    
+        askquestion([{
+          type: type,
+          name: 'thepr',
+          message: 'please select the pull requests you want:',
+          choices: createChoiceTable(heads, resdata.map((item: any) => {
+            return [String(item.number), item.title, item.body || 'no content', item.html_url]
+          }))
+        }], function (answers: any) {
+          let selectPrs = type === 'list' ? answers.thepr.split('│')[1].trim() : answers.thepr.map((item: any) => {
+            return item.split('│')[1].trim()
+          })
+          fn(targetName, reposname, selectPrs)
         })
-        fn(targetName, reposname, selectPrs)
-      })
+      } else {
+        info('no pull requests existed!please create it first')
+      }
     })
-  }, true, 'list')
+  })
 }
 
 export const prStrategies: {[key: string]: any} = {
   'ls': {
     '-r': function () {
-      selectRepos(function (reposname: string, targetName: string) {
+      selectReposWithMode(function (reposname: string, targetName: string) {
         prActions.listForRepos({
           ownername: targetName,
           reposname: reposname
+        }).then((resdata: any) => {
+          if (resdata.length === 0) {
+            info('no pull requests existed!')
+          } else {
+            let dataTable: any = createTable({
+              head: ['number', 'title', 'state', 'content', 'detailUrl(cmd+click)'],
+              colWidths: [10, 20, 10, 40, 60],
+              wordWrap: true
+            })
+            resdata.forEach((item: any) => {
+              dataTable.push([item.number, item.title, item.state, item.body || 'no content', item.html_url])
+            })
+            console.log(dataTable.toString())
+          }
         })
-      }, true, 'list')
+      })
     },
     '-p': function () {
       selectPr(function (ownername: string, reposname: string, prnumber: number) {
@@ -309,6 +295,20 @@ export const prStrategies: {[key: string]: any} = {
           ownername: ownername,
           reposname: reposname,
           number: prnumber
+        }).then((resdata: any) => {
+          if (resdata.length === 0) {
+            info('no reviews existed for this pull request')
+          } else {
+            let dataTable: any = createTable({
+              head: ['id', 'creator', 'content', 'state', 'detailUrl(cmd+click)'],
+              colWidths: [10, 20, 40, 20, 60],
+              wordWrap: true
+            })
+            resdata.forEach((item: any) => {
+              dataTable.push([item.id, item.user.login, item.body || 'no content', item.state, item.html_url])
+            })
+            console.log(dataTable.toString())
+          }
         })
       })
     },
@@ -318,6 +318,20 @@ export const prStrategies: {[key: string]: any} = {
           ownername: ownername,
           reposname: reposname,
           number: prnumber
+        }).then((resdata: any) => {
+          if (resdata.length === 0) {
+            info('no comments existed for this pull request!')
+          } else {
+            let dataTable: any = createTable({
+              head: ['id', 'creator', 'content', 'detailUrl(cmd+click)'],
+              colWidths: [10, 20, 40, 60],
+              wordWrap: true
+            })
+            resdata.forEach((item: any) => {
+              dataTable.push([item.id, item.user.login, item.body, item.html_url])
+            })
+            console.log(dataTable.toString())
+          }
         })
       })
     },
@@ -328,37 +342,76 @@ export const prStrategies: {[key: string]: any} = {
           reposname: reposname,
           number: prnumber
         }).then((resdata: any) => {
-          let dataTable: any = createTable({
-            head: ['id', 'state', 'body', 'detailUrl']
-          })
-          resdata.forEach((item: any) => {
-            dataTable.push([item.id, item.state, item.body, getHyperlinkText(item.html_url)])
-          })
-          askquestion([{
-            type: 'list',
-            name: 'review',
-            message: 'please select a review from this list:',
-            choices: dataTable
-          }], function (answers: any) {
-            prActions.listCommentsForReview({
-              ownername: ownername,
-              reposname: reposname,
-              number: prnumber,
-              id: answers.review[0]
+          if (resdata.length === 0) {
+            info('no reviews existed for this pull request')
+          } else {
+            let heads = [{
+              value: 'id',
+              type: 'number'
+            }, {
+              value: 'state',
+              type: 'title'
+            }, {
+              value: 'content',
+              type: 'description'
+            }, {
+              value: 'detailUrl(cmd+click)',
+              type: 'url'
+            }]
+            askquestion([{
+              type: 'list',
+              name: 'review',
+              message: 'please select a review from this list:',
+              choices: createChoiceTable(heads, resdata.map((item: any) => {
+                return [String(item.id), item.state, item.body, item.html_url]
+              }))
+            }], function (answers: any) {
+              prActions.listCommentsForReview({
+                ownername: ownername,
+                reposname: reposname,
+                number: prnumber,
+                id: answers.review.split('│')[1].trim()
+              }).then((resdata: any) => {
+                if (resdata.length === 0) {
+                  info('no comments existed for this review!')
+                } else {
+                  let dataTable: any = createTable({
+                    head: ['id', 'creator', 'content', 'detailUrl(cmd+click)'],
+                    colWidths: [10, 20, 40, 60],
+                    wordWrap: true
+                  })
+                  resdata.forEach((item: any) => {
+                    dataTable.push([item.id, item.user.login, item.body, item.html_url])
+                  })
+                  console.log(dataTable.toString())
+                }
+              })
             })
-          })
+          }
         })
       })
     },
     '-cr': function () {
-      selectRepos(function (reposname: string, targetName: string) {
+      selectReposWithMode(function (reposname: string, targetName: string) {
         prActions.listCommentsForRepo({
           ownername: targetName,
           reposname: reposname
         }).then((resdata: any) => {
-          console.log(resdata)
+          if (resdata.length === 0) {
+            info('no comments existed for this repository!')
+          } else {
+            let dataTable: any = createTable({
+              head: ['id', 'creator', 'content', 'detailUrl(cmd+click)'],
+              colWidths: [10, 20, 40, 60],
+              wordWrap: true
+            })
+            resdata.forEach((item: any) => {
+              dataTable.push([item.id, item.user.login, item.body, item.html_url])
+            })
+            console.log(dataTable.toString())
+          }
         })
-      }, true, 'list')
+      })
     },
     '-rp': function () {
       selectPr(function (ownername: string, reposname: string, prnumber: number) {
@@ -366,40 +419,109 @@ export const prStrategies: {[key: string]: any} = {
           ownername: ownername,
           reposname: reposname,
           number: prnumber
+        }).then((resdata: any) => {
+          let dataTable: any = createTable({
+            head: ['reviewers', 'team_reviewers'],
+            colWidths: [20, 20]
+          })
+          let usersdata = resdata.users
+          let teamdata = resdata.teams
+          let thelength = Math.max(usersdata.length, teamdata.length)
+          for (let i = 0;i < thelength; i++) {
+            dataTable.push([(usersdata[i] && usersdata[i].login) || 'no user reviewers', (teamdata[i] && teamdata[i].name) || 'no team reviewers'])
+          }
+          console.log(dataTable.toString())
         })
       })
     }
   },
   'cr': {
     '-p': function () {
-      selectRepos(function (reposname: string, targetName: string) {
-        askquestion([{
-          type: 'input',
-          name: 'title',
-          message: 'please input the title of this pull request:'
-        }, {
-          type: 'input',
-          name: 'head',
-          message: 'please input the head branch name:'
-        }, {
-          type: 'input',
-          name: 'base',
-          message: 'please input the base branch name:'
-        }], function (answers: any) {
-          prActions.createPr({
-            ownername: targetName,
-            reposname: reposname,
-            data: {
-              title: answers.title,
-              head: answers.head,
-              base: answers.base
-            }
+      selectReposWithMode(function (reposname: string, targetName: string) {
+        function createPr (headBranches: any, baseBranches: any, reposInfo: any) {
+          askquestion([{
+            type: 'input',
+            name: 'title',
+            message: 'please input the title of this pull request:'
+          }, {
+            type: 'editor',
+            name: 'description',
+            message: 'please input the description for this pull request:'
+          }, {
+            type: 'list',
+            name: 'head',
+            message: 'please select the head branch name:',
+            choices: headBranches
+          }, {
+            type: 'list',
+            name: 'base',
+            message: 'please select the base branch name:',
+            choices: baseBranches
+          }], function (answers: any) {
+            prActions.createPr({
+              ownername: reposInfo.ownername,
+              reposname: reposInfo.reposname,
+              data: {
+                title: answers.title,
+                head: process.env.githubUserMode === 'target' ? `${reposInfo.ownname}:${answers.head}` : answers.head,
+                base: answers.base
+              }
+            }).then((resdata: any) => {
+              success('create pull request success!')
+              let dataTable: any = createTable({
+                head: ['number', 'title', 'state', 'description', 'detailUrl(cmd+click)'],
+                colWidths: [10, 20, 20, 40, 60],
+                wordWrap: true
+              })
+              dataTable.push([resdata.number, resdata.title, resdata.state, resdata.body || 'no description', resdata.html_url])
+              console.log(dataTable.toString())
+            })
           })
+        }
+        reposActions.getBranches({
+          ownername: targetName,
+          reposname: reposname
+        }).then((resdata: any) => {
+          let branches = resdata.map((item: any) => {
+            return item.name
+          })
+          if (process.env.githubUserMode === 'target') {
+            getUserName((username: string) => {
+              reposActions.getBranches({
+                ownername: username,
+                reposname: reposname
+              }).then((resdata: any) => {
+                let headBranches = resdata.map((item: any) => {
+                  return item.name
+                })
+                createPr(headBranches, branches, {
+                  ownername: targetName,
+                  reposname: reposname,
+                  ownname: username
+                })
+              })
+            })
+          } else {
+            createPr(branches, branches, {
+              ownername: targetName,
+              reposname: reposname
+            })
+          }
         })
-      }, true, 'list')
+      })
     },
     '-pr': function () {
       selectPr(function (ownername: string, reposname: string, prnumber: number) {
+        function successProcess (resdata: any) {
+          success('create pull request review success!')
+          let dataTable: any = createTable({
+            head: ['id', 'content', 'state', 'detailUrl(cmd+click)'],
+            colWidths: [10, 40, 20, 60],
+            wordWrap: true
+          })
+          dataTable.push([resdata.id, resdata.body, resdata.state, resdata.html_url])
+          console.log(dataTable.toString())
+        }
         askquestion([{
           type: 'list',
           name: 'event',
@@ -420,6 +542,8 @@ export const prStrategies: {[key: string]: any} = {
                   body: bodyanswers.body,
                   event: answers.event
                 }
+              }).then((resdata: any) => {
+                successProcess(resdata)
               })
             })
           } else {
@@ -430,26 +554,54 @@ export const prStrategies: {[key: string]: any} = {
               data: {
                 event: answers.event
               }
+            }).then((resdata: any) => {
+              successProcess(resdata)
             })
           }
         })
       })
     },
-    '-c': function () {
+    '-rp': function () {
       selectPr(function (ownername: string, reposname: string, prnumber: number) {
-        prActions.createComment({
-          ownername: ownername,
-          reposname: reposname,
-          number: prnumber
-        })
-      })
-    },
-    '－rp': function () {
-      selectPr(function (ownername: string, reposname: string, prnumber: number) {
-        prActions.createReviewRequest({
-          ownername: ownername,
-          reposname: reposname,
-          number: prnumber
+        askquestion([{
+          type: 'input',
+          name: 'reviewers',
+          message: 'please input the names of reviewers(split with space):'
+        }, {
+          type: 'confirm',
+          name: 'needteam',
+          message: 'Do you need add team reviewers?:'
+        }], (firstanswers: any) => {
+          if (firstanswers.needteam) {
+            askquestion([{
+              type: 'input',
+              name: 'teamviewers',
+              message: 'please input the names of team reviewers(split with space):'
+            }], (answers: any) => {
+              prActions.createReviewRequest({
+                ownername: ownername,
+                reposname: reposname,
+                number: prnumber,
+                data: {
+                  reviewers: firstanswers.reviewers.split(' '),
+                  team_reviewers: answers.teamviewers.split(' ')
+                }
+              }).then((resdata: any) => {
+                success('create review request success!')
+              })
+            })
+          } else {
+            prActions.createReviewRequest({
+              ownername: ownername,
+              reposname: reposname,
+              number: prnumber,
+              data: {
+                reviewers: firstanswers.reviewers.split(' ')
+              }
+            }).then((resdata: any) => {
+              success('create review request success!')
+            })
+          }
         })
       })
     }
@@ -496,44 +648,72 @@ export const prStrategies: {[key: string]: any} = {
               reposname: reposname,
               number: prnumber,
               data: editanswers
+            }).then((resdata: any) => {
+              success('update pull request success!')
+              let dataTable: any = createTable({
+                head: ['number', 'title', 'state', 'description', 'detailUrl(cmd+click)'],
+                colWidths: [10, 20, 10, 40, 60],
+                wordWrap: true
+              })
+              dataTable.push([resdata.number, resdata.title, resdata.state, resdata.body || 'no content', resdata.html_url])
+              console.log(dataTable.toString())
             })
           })
         })
       })
     },
     '-c': function () {
-      selectRepos(function (reposname: string, targetName: string) {
+      selectReposWithMode(function (reposname: string, targetName: string) {
         prActions.listCommentsForRepo({
           ownername: targetName,
           reposname: reposname
         }).then((resdata: any) => {
-          let dataTable: any = createTable({
-            head: ['id', 'content', 'detailUrl']
-          })
-          resdata.forEach((item: any) => {
-            dataTable.push([item.id, item.body, getHyperlinkText(item.html_url)])
-          })
-          askquestion([{
-            type: 'list',
-            name: 'comment',
-            message: 'please select a comment to be edited:',
-            choices: dataTable
-          }, {
-            type: 'input',
-            name: 'body',
-            message: 'please input the content of this comment:'
-          }], function (answers: any) {
-            prActions.editComment({
-              ownername: targetName,
-              reposname: reposname,
-              id: answers.comment[0],
-              data: {
-                body: answers.body
-              }
+          if (resdata.length === 0) {
+            info('no comments existed for this repository!you need create it first')
+          } else {
+            let heads = [{
+              value: 'id',
+              type: 'number'
+            }, {
+              value: 'content',
+              type: 'description'
+            }, {
+              value: 'detailUrl(cmd+click)',
+              type: 'url'
+            }]
+            askquestion([{
+              type: 'list',
+              name: 'comment',
+              message: 'please select a comment to be edited:',
+              choices: createChoiceTable(heads, resdata.map((item: any) => {
+                return [String(item.id), item.body || 'no content', item.html_url]
+              }))
+            }, {
+              type: 'editor',
+              name: 'body',
+              message: 'please input the content of this comment:'
+            }], function (answers: any) {
+              prActions.editComment({
+                ownername: targetName,
+                reposname: reposname,
+                id: answers.comment.split('│')[1].trim(),
+                data: {
+                  body: answers.body
+                }
+              }).then((resdata: any) => {
+                success('update comment success!')
+                let dataTable: any = createTable({
+                  head: ['id', 'content', 'detailUrl(cmd+click)'],
+                  colWidths: [10, 40, 60],
+                  wordWrap: true
+                })
+                dataTable.push([resdata.id, resdata.body, resdata.html_url])
+                console.log(dataTable.toString())
+              })
             })
-          })
+          }
         })
-      }, true, 'list')
+      })
     }
   },
   'rm': {
@@ -544,58 +724,83 @@ export const prStrategies: {[key: string]: any} = {
           reposname: reposname,
           number: prnumber
         }).then((resdata: any) => {
-          let dataTable: any = createTable({
-            head: ['id', 'body', 'state', 'detailUrl']
-          })
-          resdata.forEach((item: any) => {
-            dataTable.push([item.id, item.body, item.state, getHyperlinkText(item.html_url)])
-          })
-          askquestion([{
-            type: 'checkbox',
-            name: 'reviewids',
-            message: 'please select some reviews to be removed:',
-            choices: dataTable
-          }], function (answers: any) {
-            prActions.deletePrReviews({
-              ownername: ownername,
-              reposname: reposname,
-              number: prnumber,
-              ids: answers.reviewids.map((item: any) => {
-                return item[0]
+          if (resdata.length === 0) {
+            info('no reviews existed for this pull request! you need create it first')
+          } else {
+            let heads = [{
+              value: 'id',
+              type: 'number'
+            }, {
+              value: 'content',
+              type: 'description'
+            }, {
+              value: 'state',
+              type: 'title'
+            }, {
+              value: 'detailUrl(cmd+click)',
+              type: 'url'
+            }]
+            askquestion([{
+              type: 'checkbox',
+              name: 'reviewids',
+              message: 'please select some reviews to be removed:',
+              choices: createChoiceTable(heads, resdata.map((item: any) => {
+                return [String(item.id), item.body, item.state, item.html_url]
+              }))
+            }], function (answers: any) {
+              prActions.deletePrReviews({
+                ownername: ownername,
+                reposname: reposname,
+                number: prnumber,
+                ids: answers.reviewids.map((item: any) => {
+                  return item.split('│')[1].trim()
+                })
+              }).then((res: any) => {
+                success('delete reviews success!')
               })
             })
-          })
+          }
         })
       })
     },
     '-c': function () {
-      selectRepos(function (reposname: string, targetName: string) {
+      selectReposWithMode(function (reposname: string, targetName: string) {
         prActions.listCommentsForRepo({
           ownername: targetName,
           reposname: reposname
         }).then((resdata: any) => {
-          let dataTable: any = createTable({
-            head: ['id', 'content', 'detailUrl']
-          })
-          resdata.forEach((item: any) => {
-            dataTable.push([item.id, item.body, getHyperlinkText(item.html_url)])
-          })
-          askquestion([{
-            type: 'checkbox',
-            name: 'comments',
-            message: 'please select some comments to be removed:',
-            choices: dataTable
-          }], function (answers: any) {
-            prActions.deleteComment({
-              ownername: targetName,
-              reposname: reposname,
-              ids: answers.comments.map((item: any) => {
-                return item[0]
+          if (resdata.length === 0) {
+            info('no comments existed!you need create it first')
+          } else {
+            let heads = [{
+              value: 'id',
+              type: 'number'
+            }, {
+              value: 'content',
+              type: 'description'
+            }, {
+              value: 'detailUrl(cmd+click)',
+              type: 'url'
+            }]
+            askquestion([{
+              type: 'checkbox',
+              name: 'comments',
+              message: 'please select some comments to be removed:',
+              choices: createChoiceTable(heads, resdata.map((item: any) => {
+                return [String(item.id), item.body || 'no content', item.html_url]
+              }))
+            }], function (answers: any) {
+              prActions.deleteComment({
+                ownername: targetName,
+                reposname: reposname,
+                ids: answers.comments.map((item: any) => {
+                  return item.split('│')[1].trim()
+                })
               })
             })
-          })
+          }
         })
-      }, true, 'list')
+      })
     },
     '-r': function () {
       selectPr(function (ownername: string, reposname: string, prnumber: number) {
@@ -603,6 +808,8 @@ export const prStrategies: {[key: string]: any} = {
           ownername: ownername,
           reposname: reposname,
           number: prnumber
+        }).then((resdata: any) => {
+          success('delete review request success!')
         })
       })
     }
@@ -622,6 +829,8 @@ export const prStrategies: {[key: string]: any} = {
           data: {
             merge_method: answers.method
           }
+        }).then((resdata: any) => {
+          success('Pull Request successfully merged!')
         })
       })
     }, 'checkbox')
@@ -633,38 +842,60 @@ export const prStrategies: {[key: string]: any} = {
         reposname: reposname,
         number: prnumber
       }).then((resdata: any) => {
-        let dataTable: any = createTable({
-          head: ['id', 'content', 'state', 'detaiUrl']
-        })
-        resdata.forEach((item: any) => {
-          dataTable.push([item.id, item.body, item.state, getHyperlinkText(item.html_url)])
-        })
-        askquestion([{
-          type: 'list',
-          name: 'review',
-          message: 'please select a review to be submitted:',
-          choices: dataTable
-        }, {
-          type: 'input',
-          name: 'body',
-          message: 'please input the content of this review'
-        }, {
-          type: 'list',
-          name: 'event',
-          message: 'please select a reaction type:',
-          choices: ['APPROVE', 'REQUEST_CHANGES', 'COMMENT']
-        }], function (answers: any) {
-          prActions.submitPrReview({
-            ownername: ownername,
-            reposname: reposname,
-            number: prnumber,
-            id: answers.review,
-            data: {
-              body: answers.body,
-              event: answers.event
-            }
+        if (resdata.length === 0) {
+          info('no reviews existed for this pull request')
+        } else {
+          let heads = [{
+            value: 'id',
+            type: 'number'
+          }, {
+            value: 'content',
+            type: 'description'
+          }, {
+            value: 'state',
+            type: 'title'
+          }, {
+            value: 'detailUrl(cmd+click)',
+            type: 'url'
+          }]
+          askquestion([{
+            type: 'list',
+            name: 'review',
+            message: 'please select a review to be submitted:',
+            choices: createChoiceTable(heads, resdata.map((item: any) => {
+              return [String(item.id), item.body || 'no content', item.state, item.html_url]
+            }))
+          }, {
+            type: 'input',
+            name: 'body',
+            message: 'please input the content of this review'
+          }, {
+            type: 'list',
+            name: 'event',
+            message: 'please select a reaction type:',
+            choices: ['APPROVE', 'REQUEST_CHANGES', 'COMMENT']
+          }], function (answers: any) {
+            prActions.submitPrReview({
+              ownername: ownername,
+              reposname: reposname,
+              number: prnumber,
+              id: answers.review.split('│')[1].trim(),
+              data: {
+                body: answers.body,
+                event: answers.event
+              }
+            }).then((resdata: any) => {
+              success('submit a pull request review success!')
+              let dataTable: any = createTable({
+                head: ['id', 'content', 'state', 'detailUrl(cmd+click)'],
+                colWidths: [10, 40, 20, 60],
+                wordWrap: true
+              })
+              dataTable.push([resdata.id, resdata.body, resdata.state, resdata.html_ul])
+              console.log(dataTable.toString())
+            })
           })
-        })
+        }   
       })
     })
   },
@@ -675,32 +906,54 @@ export const prStrategies: {[key: string]: any} = {
         reposname: reposname,
         number: prnumber
       }).then((resdata: any) => {
-        let dataTable: any = createTable({
-          head: ['id', 'content', 'state', 'detaiUrl']
-        })
-        resdata.forEach((item: any) => {
-          dataTable.push([item.id, item.body, item.state, getHyperlinkText(item.html_url)])
-        })
-        askquestion([{
-          type: 'list',
-          name: 'review',
-          message: 'please select a review to be dismissed:',
-          choices: dataTable
-        }, {
-          type: 'input',
-          name: 'message',
-          message: 'please input the message for the pull request review dismissal'
-        }], function (answers: any) {
-          prActions.dismissPrReview({
-            ownername: ownername,
-            reposname: reposname,
-            number: prnumber,
-            id: answers.review,
-            data: {
-              message: answers.message
-            }
+        if (resdata.length === 0) {
+          info('no reviews existed for this pull request')
+        } else {
+          let heads = [{
+            value: 'id',
+            type: 'number'
+          }, {
+            value: 'content',
+            type: 'description'
+          }, {
+            value: 'state',
+            type: 'title'
+          }, {
+            value: 'detailUrl(cmd+click)',
+            type: 'url'
+          }]
+          askquestion([{
+            type: 'list',
+            name: 'review',
+            message: 'please select a review to be dismissed:',
+            choices: createChoiceTable(heads, resdata.map((item: any) => {
+              return [String(item.id), item.body || 'no content', item.state, item.html_url]
+            }))
+          }, {
+            type: 'input',
+            name: 'message',
+            message: 'please input the message for the pull request review dismissal'
+          }], function (answers: any) {
+            prActions.dismissPrReview({
+              ownername: ownername,
+              reposname: reposname,
+              number: prnumber,
+              id: answers.review.split('│')[1].trim(),
+              data: {
+                message: answers.message
+              }
+            }).then((resdata: any) => {
+              success('pull request review dismissed success!')
+              let dataTable: any = createTable({
+                head: ['id', 'content', 'state', 'detailUrl(cmd+click)'],
+                colWidths: [10, 40, 20, 60],
+                wordWrap: true
+              })
+              dataTable.push([resdata.id, resdata.body || 'no content', resdata.state, resdata.html_url])
+              console.log(dataTable.toString())
+            })
           })
-        })
+        }
       })
     })
   }

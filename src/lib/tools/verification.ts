@@ -2,6 +2,7 @@ import { request, thedomain } from './request';
 import askquestion from './askQuestion';
 import spinner from './spinner'
 import { saveInfo, getInfo } from './saveInfo';
+import { info } from './output'
 import { reposActions } from '../action/repos';
 
 // 获取想要操作的Github用户名
@@ -129,17 +130,21 @@ export const validateRepos = function (username: string, reposname: string, fn: 
 // get repositories of a github user to help user select
 export const selectRepos = function (fn: Function, isNeedTarget: boolean = false, type: string = 'checkbox') {
   function selectReposList (reposdataList: any, targetName?: string) {
-    let thereposNameList = reposdataList.map((item: any) => {
-      return item.name
-    })
-    askquestion([{
-      type: type,
-      name: 'reposlist',
-      message: 'please select the repository you need:',
-      choices: thereposNameList
-    }], function (answers: any) {
-      fn(answers.reposlist, targetName)
-    })
+    if (reposdataList.length > 0) {
+      let thereposNameList = reposdataList.map((item: any) => {
+        return item.name
+      })
+      askquestion([{
+        type: type,
+        name: 'reposlist',
+        message: 'please select the repository you need:',
+        choices: thereposNameList
+      }], function (answers: any) {
+        fn(answers.reposlist, targetName)
+      })
+    } else {
+      info('no repositories existed!please create it first')
+    }
   }
   if (isNeedTarget) {
     getUserName(function (targetName: string) {

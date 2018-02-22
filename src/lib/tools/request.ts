@@ -159,8 +159,10 @@ export const request = function (url: string, type: string, data: any, requestOp
       resolve(res)
     })
   })).catch((err: any) => {
-    if (err.response && err.response.status) {
-      if (err.response.status === 401) {
+    if (err.response && err.response.data) {
+      error(err.response.statusText)
+      error(err.response.data.message)
+      /*if (err.response.status === 401) {
         error('you are unauthorized')
       }
       if (err.response.status === 403) {
@@ -169,6 +171,10 @@ export const request = function (url: string, type: string, data: any, requestOp
       if (err.response.status === 410) {
         error('current action is disabled or deprecated')
       }
+      if (err.response.status === 422) {
+        error('unprocessable request,maybe the data you input is invalid')
+      }
+      if (err.response.status === 405)*/
       // 有些查看操作，checkcolloborators如果结果为否会返回404
     }
     console.log(err)
