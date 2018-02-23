@@ -3,6 +3,7 @@ import { getToken, getUserName } from '../tools/verification'
 import askquestion from '../tools/askQuestion';
 import createTable from '../tools/tableShow';
 import getHyperlinkText from '../tools/hyperlinker';
+import { info, success } from '../tools/output'
 const acceptType = 'application/vnd.github.v3.text-match+json'
 
 export const searchActions = {
@@ -13,8 +14,20 @@ export const searchActions = {
         'Accept': acceptType
       }
     }).then((res: any) => {
-      console.log(res.data)
-      return res.data
+      let dataItems = res.data.items
+      if (dataItems && dataItems.length > 0) {
+        let dataTable: any = createTable({
+          head: ['name', 'owner', 'description', 'detailUrl(cmd+click)'],
+          colWidths: [10, 16, 40, 60],
+          wordWrap: true
+        })
+        dataItems.forEach((item: any) => {
+          dataTable.push([item.name, item.owner.login, item.description || 'empty description', item.html_url])
+        })
+        console.log(dataTable.toString())
+      } else {
+        info('there is no repository match your search condition')
+      }
     })
   },
   // search commits
@@ -24,8 +37,20 @@ export const searchActions = {
         'Accept': 'application/vnd.github.cloak-preview'
       }
     }).then((res: any) => {
-      console.log(res.data)
-      return res.data
+      let dataItems = res.data.items
+      if (dataItems && dataItems.length > 0) {
+        let dataTable: any = createTable({
+          head: ['sha', 'committer', 'commit message', 'detailUrl(cmd+click)'],
+          colWidths: [10, 10, 40, 60],
+          wordWrap: true
+        })
+        dataItems.forEach((item: any) => {
+          dataTable.push([item.sha, item.author.login, item.commit.message, item.html_url])
+        })
+        console.log(dataTable.toString())
+      } else {
+        info('there is no commit match your search condition')
+      }
     })
   },
   // search issues
@@ -35,8 +60,20 @@ export const searchActions = {
         'Accept': acceptType
       }  
     }).then((res: any) => {
-      console.log(res.data)
-      return res.data
+      let dataItems = res.data.items
+      if (dataItems && dataItems.length > 0) {
+        let dataTable: any = createTable({
+          head: ['title', 'state', 'body', 'detailUrl(cmd+click)'],
+          colWidths: [20, 10, 40, 60],
+          wordWrap: true
+        })
+        dataItems.forEach((item: any) => {
+          dataTable.push([item.title, item.state, item.body || 'empty description', item.html_url])
+        })
+        console.log(dataTable.toString())
+      } else {
+        info('there is no issue match your search condition')
+      }
     })
   },
   // search users
@@ -46,8 +83,19 @@ export const searchActions = {
         'Accept': acceptType
       }
     }).then((res: any) => {
-      console.log(res.data)
-      return res.data
+      let dataItems = res.data.items
+      if (dataItems && dataItems.length > 0) {
+        let dataTable: any = createTable({
+          head: ['name', 'detailUrl(cmd+click)'],
+          colWidths: [20, 60]
+        })
+        dataItems.forEach((item: any) => {
+          dataTable.push([item.login, item.html_url])
+        })
+        console.log(dataTable.toString())
+      } else {
+        info('there is no user match your search condition')
+      }
     })
   },
   // search code
@@ -57,8 +105,20 @@ export const searchActions = {
         'Accept': acceptType
       }
     }).then((res: any) => {
-      console.log(res.data)
-      return res.data
+      let dataItems = res.data.items
+      if (dataItems && dataItems.length > 0) {
+        let dataTable: any = createTable({
+          head: ['path', 'repos name', 'repos description', 'detailUrl(cmd+click)'],
+          colWidths: [20, 20, 40, 60],
+          wordWrap: true
+        })
+        dataItems.forEach((item: any) => {
+          dataTable.push([item.path, item.repository.full_name, item.repository.description, item.html_url])
+        })
+        console.log(dataTable.toString())
+      } else {
+        info('there is no result match your search condition')
+      }
     })
   }
 }

@@ -14,7 +14,23 @@ After install you could get the detail command information through
 ```
 $ gh
 ```
-There is a situation may raise your attention in the process of usage. In the essence, command line is a client type, when you input a command to create, update, or remove data, you need complete identity authentication firstly, in github, this authentication could be accomplished by the way of creating a identity token, so when you encounter a interface that alert you to input your identity token, what you need to do is just copy it from the github website and then paste in the command line.  
+There is a situation may raise your attention in the process of usage. In the essence, command line is a client type, when you input a command to create, update, or remove data, you need complete identity authentication firstly, in github, this authentication could be accomplished by the way of creating a personal access token, so when you encounter a interface that alert you to input your identity token like this:  
+![](https://ws4.sinaimg.cn/large/006tNc79gy1foqltggkjsj30n507ptgk.jpg)  
+
+what you need to do firstly is create it at [generate token address](https://github.com/settings/tokens)  
+
+
+![](https://ws2.sinaimg.cn/large/006tNc79gy1foqjrqrd5zj30rp09idhm.jpg)  
+
+![](https://ws3.sinaimg.cn/large/006tNc79gy1foqklllx1dj30r405n3zh.jpg)    
+
+![](https://ws4.sinaimg.cn/large/006tNc79gy1foqkn4p1utj30r608ita3.jpg)  
+
+![](https://ws2.sinaimg.cn/large/006tNc79gy1foqko6r97tj30oi06gt9j.jpg)  
+
+when you select the scopes for this access token,a better choice is making all those scopes checked in case this access token can not comlete some actions that need authentication.
+After input the description and select the scopes,you could click the generate token button to create your personal access token, thus copy this token to the command line question interface.
+
 Currently, this command line tool has supported the main types of github actions, such as search, repositories, pull request, pesonal user, reaction, issues.The usage detail of these commands scope as follows:  
 
 ## Repository

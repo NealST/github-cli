@@ -20,6 +20,7 @@
     "gh_sr": "./bin/github_search.js"
   },
   "dependencies": {
+    "@types/node-emoji": "^1.8.0",
     "axios": "^0.17.1",
     "chalk": "^2.3.0",
     "cli-progress": "^1.7.0",

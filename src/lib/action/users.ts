@@ -1,9 +1,10 @@
 import {request} from '../tools/request'
 import { getToken, getUserName } from '../tools/verification';
 import promiseCompose from '../tools/promiseCompose';
-import askquestion from '../tools/askQuestion';
+import askquestion, {createChoiceTable} from '../tools/askQuestion';
 import createTable from '../tools/tableShow';
 import getHyperlinkText from '../tools/hyperlinker';
+import { success, info } from '../tools/output';
 
 export const userActions = {
   // update personal info about a user
@@ -14,7 +15,6 @@ export const userActions = {
           'Authorization': `token ${process.env.githubToken}`
         }
       }).then((res: any) => {
-        console.log(res.data)
         return res.data
       })
     }])
@@ -23,7 +23,6 @@ export const userActions = {
   listFollowers (listOptions: any) {
     return request(`/users/${listOptions.username}/followers`, 'get', {})
       .then((res: any) => {
-        console.log(res.data)
         return res.data
       })
   },
@@ -35,7 +34,6 @@ export const userActions = {
           'Authorization': `token ${process.env.githubToken}`
         }  
       }).then((res: any) => {
-        console.log(res.data)
         return res.data
       })
     }])
@@ -44,20 +42,20 @@ export const userActions = {
   listFollowing (listOptions: any) {
     return request(`/users/${listOptions.username}/following`, 'get', {})
       .then((res: any) => {
-        console.log(res.data)
         return res.data
       })
   },
   // list own following
   listOwnFollowing () {
-    return request('/user/following', 'get', {}, {
-      headers: {
-        'Authorization': `token ${process.env.githubToken}`
-      }  
-    }).then((res: any) => {
-      console.log(res.data)
-      return res.data
-    })
+    return promiseCompose([getToken, () => {
+      return request('/user/following', 'get', {}, {
+        headers: {
+          'Authorization': `token ${process.env.githubToken}`
+        }  
+      }).then((res: any) => {
+        return res.data
+      })
+    }])
   },
   // follow a user
   addFollower (options: any) {
@@ -67,7 +65,6 @@ export const userActions = {
           'Authorization': `token ${process.env.githubToken}`
         }  
       }).then((res: any) => {
-        console.log(res.data)
         return res.data
       })
     }])
@@ -82,7 +79,6 @@ export const userActions = {
           }
         })
       })).then((res: any) => {
-        console.log(res)
         return res
       })
     }])
@@ -92,21 +88,49 @@ export const userActions = {
 export const userStrategy: {[key: string]: any} = {
   'ls': {
     '-m': function () {
+      function dataShow (datalist: any) {
+        if (datalist.length > 0) {
+          let dataTable: any = createTable({
+            head: ['name', 'detailUrl(cmd+click)'],
+            colWidths: [20, 60]
+          })
+          datalist.forEach((item: any) => {
+            dataTable.push([item.login, item.html_url])
+          })
+          console.log(dataTable.toString())
+        } else {
+          info('no followers existed!')
+        }
+      }
       if (process.env.githubUserMode === 'target') {
         getUserName((ownername: string) => {
-          userActions.listFollowers({username: ownername})
+          userActions.listFollowers({username: ownername}).then(dataShow)
         }, true)
       } else {
-        userActions.listOwnFollowers()
+        userActions.listOwnFollowers().then(dataShow)
       }
     },
     '-t': function () {
+      function dataShow (datalist: any) {
+        if (datalist.length > 0) {
+          let dataTable: any = createTable({
+            head: ['name', 'detailUrl(cmd+click)'],
+            colWidths: [20, 60]
+          })
+          datalist.forEach((item: any) => {
+            dataTable.push([item.login, item.html_url])
+          })
+          console.log(dataTable.toString())
+        } else {
+          info('no following existed!')
+        }
+      }
       if (process.env.githubUserMode === 'target') {
         getUserName((ownername: string) => {
-          userActions.listFollowing({username: ownername})
+          userActions.listFollowing({username: ownername}).then(dataShow)
         }, true)
       } else {
-        userActions.listOwnFollowing()
+        userActions.listOwnFollowing().then(dataShow)
       }
     }
   },
@@ -155,6 +179,8 @@ export const userStrategy: {[key: string]: any} = {
       askquestion(questionArray, (theanswers: any) => {
         userActions.editUser({
           data: theanswers
+        }).then(() => {
+          success('update personal information success!')
         })
       })
     })
@@ -166,24 +192,31 @@ export const userStrategy: {[key: string]: any} = {
   },
   'rf': function () {
     userActions.listOwnFollowing().then((resdata: any) => {
-      let dataTable: any = createTable({
-        head: ['name', 'detailUrl']
-      })
-      resdata.forEach((item: any) => {
-        dataTable.push([item.login, getHyperlinkText(item.html_url)])
-      })
-      askquestion([{
-        type: 'checkbox',
-        name: 'removers',
-        message: 'please select some following users to remove:',
-        choices: dataTable
-      }], (answers: any) => {
-        userActions.deleteFollower({
-          usernames: answers.removers.map((item: any) => {
-            return item[0]
+      if (resdata.length > 0) {
+        let heads = [{
+          value: 'name',
+          type: 'title'
+        }, {
+          value: 'detailUrl(cmd+click)',
+          type: 'url'
+        }]
+        askquestion([{
+          type: 'checkbox',
+          name: 'removers',
+          message: 'please select some following users to remove:',
+          choices: createChoiceTable(heads, resdata.map((item: any) => {
+            return [item.login, item.html_url]
+          }))
+        }], (answers: any) => {
+          userActions.deleteFollower({
+            usernames: answers.removers.map((item: any) => {
+              return item.split('│')[1].trim()
+            })
           })
         })
-      })
+      } else {
+        info('no following users existed!')
+      }
     })
   }
 }
