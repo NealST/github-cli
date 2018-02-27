@@ -17,7 +17,7 @@ const commandTypeObject: {[key: string]: any} = {
       '-r': 'list issues for repository',
       '-a': 'list all asignees of repository issues',
       '-c': 'list all comments of a issue',
-      '-cr': 'list comments of in a repository'
+      '-cr': 'list comments of a repository'
     }
   },
   'cr': {
@@ -33,7 +33,7 @@ const commandTypeObject: {[key: string]: any} = {
     message: 'edit issues actions(编辑issues数据)',
     childOptions: {
       '-i': 'edit an issue',
-      '-c': 'edit an comment of an issue',
+      '-c': 'edit a comment for an issue',
       '-r': 'replace labels for an issue'
     }
   },

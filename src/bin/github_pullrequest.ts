@@ -10,7 +10,7 @@ const commandTypeObject: {[key: string]: any} = {
     message: 'get list data about pull request(获取pull request列表数据操作)',
     childOptions: {
       '-r': 'list pull requests for a repository',
-      '-p': 'list all the reviews of a pull request',
+      '-v': 'list all the reviews of a pull request',
       '-c': 'list comments on a pull request',
       '-cw': 'list comments of a review of a pull request',
       '-cr': 'list comments in a repository pulls',

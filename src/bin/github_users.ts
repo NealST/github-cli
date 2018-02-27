@@ -13,8 +13,8 @@ const commandTypeObject: {[key: string]: any} = {
   'ls': {
     message: 'get list data(获取列表数据操作)',
     childOptions: {
-      '-m': 'list followers of yourself',
-      '-t': 'list your following users'
+      '-m': 'list followers of a user',
+      '-t': 'list the following of a user'
     }
   },
   'et': {
@@ -24,7 +24,7 @@ const commandTypeObject: {[key: string]: any} = {
     message: 'add a following(follow某个用户)'
   },
   'rf': {
-    message: 'delete a following(unfollow某个用户)'
+    message: 'unfollow users(unfollow某个用户)'
   }
 }
 

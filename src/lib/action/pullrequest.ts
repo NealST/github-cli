@@ -289,7 +289,7 @@ export const prStrategies: {[key: string]: any} = {
         })
       })
     },
-    '-p': function () {
+    '-v': function () {
       selectPr(function (ownername: string, reposname: string, prnumber: number) {
         prActions.listPrReviews({
           ownername: ownername,

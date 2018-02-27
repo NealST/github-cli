@@ -13,7 +13,7 @@ const commandTypeObject: {[key: string]: any} = {
   'ls': {
     message: 'get repository list data actions(获取列表数据操作)',
     childOptions: {
-      '-r': 'list repositories of myself',
+      '-r': 'list repositories',
       '-b': 'list all branches of a repository',
       '-t': 'list all topics of a repositories',
       '-c': 'list all contributors of a repository',
