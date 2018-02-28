@@ -29,7 +29,7 @@ const commandTypeObject: {[key: string]: any} = {
   'cr': {
     message: 'create actions(创建repository数据)',
     childOptions: {
-      '-r': 'create reposotories',
+      '-r': 'create new repositories',
       '-a': 'add collaborator for a repository',
       '-m': 'create a milestone for a repository',
       '-l': 'create labels for a repository'

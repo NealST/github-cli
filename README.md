@@ -25,7 +25,7 @@ There is a situation may raise your attention in the process of usage. In the es
 
 ![](https://ws4.sinaimg.cn/large/006tNc79gy1foqkn4p1utj30r608ita3.jpg)  
 
-![](https://ws2.sinaimg.cn/large/006tNc79gy1foqko6r97tj30oi06gt9j.jpg)  
+![](https://s1.ax1x.com/2018/02/28/9B7pN9.jpg)
 
 when you select the scopes for this access token,a better choice is making all those scopes checked in case this access token can not comlete some actions that need authentication.
 After input the description and select the scopes,you could click the generate token button to create your personal access token, thus copy this token to the command line question interface.
