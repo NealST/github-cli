@@ -1,8 +1,7 @@
 {
   "name": "@mozheng-neal/github_cli",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "github的命令行操作工具",
-  "main": "index.js",
   "scripts": {
     "test": "jest --watch",
     "build": "./node_modules/.bin/tsc",
