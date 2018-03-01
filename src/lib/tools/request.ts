@@ -159,7 +159,7 @@ export const request = function (url: string, type: string, data: any, requestOp
       resolve(res)
     })
   })).catch((err: any) => {
-    if (err.response.status === 404 && process.argv.indexOf('ck') > 0) {
+    if (err.response && err.response.status === 404 && process.argv.indexOf('ck') > 0) {
       error('this user is not a collaborator!')
       return
     }
