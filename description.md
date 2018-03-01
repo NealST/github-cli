@@ -6,7 +6,7 @@
 ## 揭开面纱  
 前面见了Github-cli的匆匆一面，接下来就得看看它的庐山真面目了，嗯，需要聊一聊它该怎么用。首先你需要安装它  
 ```
-$ npm i -g github-cli
+$ npm i -g @mozheng-neal/github_cli
 ```  
 安装之后你可以通过
 ```

@@ -7,8 +7,7 @@ At the same time, I visit github website frequently to look for something intere
 ## Install
 To use this tool, firstly you need install it, there are two ways you could achive the install.  
 ```
-$ npm i -g gihub-cli  // npm install
-$ yarn add github-cli -g // yarn install
+$ npm i -g @mozheng-neal/github_cli  // npm install
 ```  
 After install you could get the detail command information through  
 ```

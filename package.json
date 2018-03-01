@@ -1,6 +1,6 @@
 {
-  "name": "github-cli",
-  "version": "1.0.0",
+  "name": "@mozheng-neal/github_cli",
+  "version": "1.0.1",
   "description": "github的命令行操作工具",
   "main": "index.js",
   "scripts": {
@@ -42,7 +42,7 @@
     "github",
     "cli"
   ],
-  "author": "mozheng",
+  "author": "mozheng-neal",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/NealST/github-cli/issues"
