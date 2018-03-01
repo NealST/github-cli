@@ -7,6 +7,7 @@ import { reposStrategies } from '../lib/action/repos';
 
 program
   .version(require('../package.json').version)
+  .option('-h', 'get help')
   .parse(process.argv)
 
 const commandTypeObject: {[key: string]: any} = {
@@ -17,7 +18,7 @@ const commandTypeObject: {[key: string]: any} = {
       '-b': 'list all branches of a repository',
       '-t': 'list all topics of a repositories',
       '-c': 'list all contributors of a repository',
-      '-s': 'list all starred repositories by myself',
+      '-s': 'list all starred repositories',
       '-w': 'list all watching repositories',
       '-i': 'list commits of a repository',
       '-o': 'list all collaborators of a repository',
@@ -110,10 +111,10 @@ if (!commandTypeObject.hasOwnProperty(thecmd)) {
 }
 
 let commandObject = commandTypeObject[thecmd]
-if (commandObject.childOptions) {
-  if (!theoption) {
-    let childOptions = commandObject.childOptions
-    error('you need add a child option to this command type')
+let childOptions = commandObject.childOptions
+if (childOptions) {
+  if (!theoption || !childOptions.hasOwnProperty(theoption)) {
+    error('empty or invalid child option!')
     mainTitle('the supported child options as follows:')
     command()
     Object.keys(childOptions).forEach((item: any) => {

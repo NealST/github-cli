@@ -7,6 +7,7 @@ import { reactionStrategy } from '../lib/action/reaction'
 
 program
   .version(require('../package.json').version)
+  .option('-h', 'get help')
   .parse(process.argv)
 
 const commandTypeObject: {[key: string]: any} = {
@@ -63,10 +64,9 @@ if (!thecmd || thecmd === '-h') {
 if (!commandTypeObject.hasOwnProperty(thecmd)) {
   error('the command you input is invalid, you could get the surpported commands through $ gh rt -h')
 }
-
-if (!theoption) {
-  let childOptions = commandTypeObject[thecmd].childOptions
-  error('you need add a child option to this command type')
+let childOptions = commandTypeObject[thecmd].childOptions
+if (!theoption || !childOptions.hasOwnProperty(theoption)) {
+  error('empty or invalid child option!')
   mainTitle('the supported child options as follows:')
   command()
   Object.keys(childOptions).forEach((item: any) => {

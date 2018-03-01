@@ -3,7 +3,6 @@ import { getToken, getUserName } from '../tools/verification';
 import promiseCompose from '../tools/promiseCompose';
 import askquestion, {createChoiceTable} from '../tools/askQuestion';
 import createTable from '../tools/tableShow';
-import getHyperlinkText from '../tools/hyperlinker';
 import { success, info } from '../tools/output';
 
 export const userActions = {
@@ -187,7 +186,9 @@ export const userStrategy: {[key: string]: any} = {
   },
   'fl': function () {
     getUserName((username: string) => {
-      userActions.addFollower({username: username})
+      userActions.addFollower({username: username}).then((res: any) => {
+        success('add following success!')
+      })
     }, true)
   },
   'rf': function () {

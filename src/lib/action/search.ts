@@ -2,7 +2,6 @@ import {request} from '../tools/request'
 import { getToken, getUserName } from '../tools/verification'
 import askquestion from '../tools/askQuestion';
 import createTable from '../tools/tableShow';
-import getHyperlinkText from '../tools/hyperlinker';
 import { info, success } from '../tools/output'
 const acceptType = 'application/vnd.github.v3.text-match+json'
 
@@ -45,7 +44,7 @@ export const searchActions = {
           wordWrap: true
         })
         dataItems.forEach((item: any) => {
-          dataTable.push([item.sha, item.author.login, item.commit.message, item.html_url])
+          dataTable.push([item.sha, item.commit.author.name, item.commit.message, item.html_url])
         })
         console.log(dataTable.toString())
       } else {
@@ -100,7 +99,7 @@ export const searchActions = {
   },
   // search code
   searchCode (options: any) {
-    return request('/search/code', 'get', {}, {
+    return request('/search/code', 'get', options.data, {
       headers: {
         'Accept': acceptType
       }
@@ -123,7 +122,7 @@ export const searchActions = {
   }
 }
 
-function searchWithData (questionObject: any, fn: Function) {
+function searchWithData (questionObject: any, fn: Function, keyword?: string) {
   askquestion([{
     type: 'checkbox',
     name: 'filters',
@@ -134,13 +133,14 @@ function searchWithData (questionObject: any, fn: Function) {
       return questionObject[item]
     })
     askquestion(questionArray, (theanswers: any) => {
+      let conditionStr = Object.keys(theanswers).map((item: any) => {
+        return item === 'topic' ? theanswers.topic.split(' ').map((topicItem: string) => {
+          return `topic:${topicItem}`
+        }).join('+') : `${item}:${theanswers[item]}`
+      }).join('+')
       fn({
         data: {
-          q: Object.keys(theanswers).map((item: any) => {
-            return item === 'topic' ? theanswers.topic.split(' ').map((topicItem: string) => {
-              return `topic:${topicItem}`
-            }).join('+') : `${item}:${theanswers[item]}`
-          }).join('+')
+          q: keyword ? `${keyword}+${conditionStr}` : conditionStr
         }
       })
     })
@@ -148,7 +148,7 @@ function searchWithData (questionObject: any, fn: Function) {
 }
 
 export const searchStrategy: {[key: string]: any} = {
-  '-r': function () {
+  'r': function () {
     let questionObject: {[key: string]: any} = {
       'fork(filter whether forked repositories should be included)': {
         type: 'confirm',
@@ -188,7 +188,7 @@ export const searchStrategy: {[key: string]: any} = {
     }
     searchWithData(questionObject, searchActions.searchRepos)
   },
-  '-c': function () {
+  'c': function () {
     let questionObject: {[key: string]: any} = {
       'author(Matches commits authored by a user)': {
         type: 'input',
@@ -218,7 +218,7 @@ export const searchStrategy: {[key: string]: any} = {
     }
     searchWithData(questionObject, searchActions.searchCommits)
   },
-  '-i': function () {
+  'i': function () {
     let questionObject: {[key: string]: any} = {
       'type(With this qualifier you can restrict the search to issues or pull request)': {
         type: 'list',
@@ -260,7 +260,7 @@ export const searchStrategy: {[key: string]: any} = {
     }
     searchWithData(questionObject, searchActions.searchIssues)
   },
-  '-u': function () {
+  'u': function () {
     let questionObject: {[key: string]: any} = {
       'repos(Filters users based on the number of repositories they have)': {
         type: 'input',
@@ -279,30 +279,5 @@ export const searchStrategy: {[key: string]: any} = {
       }
     }
     searchWithData(questionObject, searchActions.searchUsers)
-  },
-  '-e': function () {
-    let questionObject: {[key: string]: any} = {
-      'language(Searches code based on the language it is written in)': {
-        type: 'input',
-        name: 'language',
-        message: 'please input the language that your searching code is written in:'
-      },
-      'extension(Matches files with a certain extension after a dot)': {
-        type: 'input',
-        name: 'extension',
-        message: 'please input the file extension type to search this code:'
-      },
-      'user(Limits searches to a specific user)': {
-        type: 'input',
-        name: 'user',
-        message: 'please input the specified username:'
-      },
-      'repo(Limits searches to a specific repository)': {
-        type: 'input',
-        name: 'repo',
-        message: 'please input the specified reposname:'
-      }
-    }
-    searchWithData(questionObject, searchActions.searchCode)
   }
 }

@@ -2,7 +2,6 @@ import {request} from '../tools/request'
 import { getToken, selectRepos, selectReposWithMode } from '../tools/verification';
 import askquestion, {createChoiceTable} from '../tools/askQuestion';
 import createTable from '../tools/tableShow';
-import getHyperlinkText from '../tools/hyperlinker';
 import promiseCompose from '../tools/promiseCompose';
 import { info, success } from '../tools/output';
 const acceptType = 'application/vnd.github.jean-grey-preview+json'
@@ -99,8 +98,6 @@ export const issueActions = {
         headers: {
           'Authorization': `token ${process.env.githubToken}`
         }  
-      }).then((res: any) => {
-        return res.data
       })
     }])
   },
@@ -232,7 +229,7 @@ const selectIssue = function (fn: Function) {
       if (resdata.length > 0) {
         let heads: any = [{
           value: 'number',
-          type: 'title'
+          type: 'number'
         }, {
           value: 'title',
           type: 'title'
@@ -266,17 +263,17 @@ export const issueStrategies: any = {
       askquestion([{
         type: 'list',
         name: 'filter',
-        message: 'what type of issues you want to see:(default assigned)',
+        message: 'which type of issues you want to see:(default assigned)',
         choices: ['assigned to you', 'created by you', 'mentioned you', 'subscribed by you', 'all of these']  
       }, {
         type: 'list',
         name: 'state',
-        message: 'what state of issues you want to see:(default open)',
+        message: 'which state of issues you want to see:(default open)',
         choices: ['open', 'closed', 'all']
       }, {
         type: 'list',
         name: 'sort',
-        message: 'what type of sort rule you want to display:(default created)',
+        message: 'which type of sort rule you want to display:(default created)',
         choices: ['created', 'updated', 'comments']
       }], function (answers: any) {
         issueActions.listForUser({
@@ -309,12 +306,12 @@ export const issueStrategies: any = {
             info('no issues existed!')
           } else {
             let dataTable: any = createTable({
-              head: ['number', 'title', 'state', 'content', 'creator', 'detailUr(cmd+click)'],
-              colWidths: [10, 20, 10, 40, 10, 50],
+              head: ['title', 'state', 'content', 'creator', 'detailUr(cmd+click)'],
+              colWidths: [20, 10, 40, 10, 50],
               wordWrap: true
             })
             resdata.forEach((item: any) => {
-              dataTable.push([item.number, item.title, item.state, item.body || 'no content', item.user.login, item.html_url])
+              dataTable.push([item.title, item.state, item.body || 'no content', item.user.login, item.html_url])
             })
             console.log(dataTable.toString())
           }
@@ -327,14 +324,18 @@ export const issueStrategies: any = {
           ownername: targetName,
           reposname: reposname
         }).then((resdata: any) => {
-          let dataTable: any = createTable({
-            head: ['name', 'detailUrl(cmd+click)'],
-            colWidths: [20, 60]
-          })
-          resdata.forEach((item: any) => {
-            dataTable.push([item.login, item.html_url])
-          })
-          console.log(dataTable.toString())
+          if (resdata.length > 0) {
+            let dataTable: any = createTable({
+              head: ['name', 'detailUrl(cmd+click)'],
+              colWidths: [20, 60]
+            })
+            resdata.forEach((item: any) => {
+              dataTable.push([item.login, item.html_url])
+            })
+            console.log(dataTable.toString())
+          } else {
+            info('no assignees existed!')
+          }
         })
       })
     },
@@ -351,7 +352,7 @@ export const issueStrategies: any = {
           } else {
             let dataTable: any = createTable({
               head: ['id', 'author', 'content', 'detailUrl(cmd+click)'],
-              colWidths: [10, 20, 40, 40],
+              colWidths: [10, 20, 40, 60],
               wordWrap: true
             })
             resdata.forEach((item: any) => {
@@ -424,7 +425,6 @@ export const issueStrategies: any = {
           name: 'assignees',
           message: 'please input some assignees of this issue(split with space):'
         }], function (answers: any) {
-          console.log(answers.assignees.split(' '))
           issueActions.addAssignees({
             ownername: ownername,
             reposname: reposname,
@@ -531,46 +531,50 @@ export const issueStrategies: any = {
           ownername: targetName,
           reposname: reposname
         }).then((resdata: any) => {
-          let heads = [{
-            value: 'id',
-            type: 'title'
-          }, {
-            value: 'content',
-            type: 'description'
-          }, {
-            value: 'detailUrl(cmd+click)',
-            type: 'url'
-          }]
-          askquestion([{
-            type: 'list',
-            name: 'comment',
-            message: 'please select a comment:',
-            choices: createChoiceTable(heads, resdata.map((item: any) => {
-              return [String(item.id), item.body, item.html_url]
-            }))
-          }, {
-            type: 'input',
-            name: 'content',
-            message: 'please edit the content of this comment'
-          }], function (answers: any) {
-            issueActions.editComment({
-              ownername: targetName,
-              reposname: reposname,
-              id: answers.comment.split('│')[1].trim(),
-              data: {
-                body: answers.content
-              }
-            }).then((resdata: any) => {
-              success('update this comment success!')
-              let dataTable: any = createTable({
-                head: ['id', 'content', 'detailUrl(cmd+click)'],
-                colWidths: [20, 40, 60],
-                wordWrap: true
+          if (resdata.length > 0) {
+            let heads = [{
+              value: 'id',
+              type: 'number'
+            }, {
+              value: 'content',
+              type: 'description'
+            }, {
+              value: 'detailUrl(cmd+click)',
+              type: 'url'
+            }]
+            askquestion([{
+              type: 'list',
+              name: 'comment',
+              message: 'please select a comment:',
+              choices: createChoiceTable(heads, resdata.map((item: any) => {
+                return [String(item.id), item.body, item.html_url]
+              }))
+            }, {
+              type: 'editor',
+              name: 'content',
+              message: 'please edit the content of this comment'
+            }], function (answers: any) {
+              issueActions.editComment({
+                ownername: targetName,
+                reposname: reposname,
+                id: answers.comment.split('│')[1].trim(),
+                data: {
+                  body: answers.content
+                }
+              }).then((resdata: any) => {
+                success('update this comment success!')
+                let dataTable: any = createTable({
+                  head: ['id', 'content', 'detailUrl(cmd+click)'],
+                  colWidths: [10, 40, 60],
+                  wordWrap: true
+                })
+                dataTable.push([resdata.id, resdata.body, resdata.html_url])
+                console.log(dataTable.toString())
               })
-              dataTable.push([resdata.id, resdata.body, resdata.html_url])
-              console.log(dataTable.toString())
             })
-          })
+          } else {
+            info('no comments existed!you need create it first')
+          }
         })
       })
     },
@@ -579,7 +583,7 @@ export const issueStrategies: any = {
         askquestion([{
           type: 'input',
           name: 'labels',
-          message: 'please input some labels to replace those existed:'
+          message: 'please input some label names to replace those existed:'
         }], function (answers: any) {
           issueActions.replaceLabelsForIssue({
             ownername: ownername,
@@ -590,7 +594,7 @@ export const issueStrategies: any = {
             success('replace labels success!')
             let dataTable: any = createTable({
               head: ['id', 'name', 'color'],
-              colWidths: [20, 20, 20]
+              colWidths: [10, 20, 20]
             })
             resdata.forEach((item: any) => {
               dataTable.push([item.id, item.name, item.color])
@@ -608,23 +612,29 @@ export const issueStrategies: any = {
           ownername: ownername,
           reposname: reposname
         }).then((resdata: any) => {
-          askquestion([{
-            type: 'checkbox',
-            name: 'assignees',
-            message: 'please select some assignees to be removed:',
-            choices: resdata.map((item: any) => {
-              return item.login
+          if (resdata.length > 0) {
+            askquestion([{
+              type: 'checkbox',
+              name: 'assignees',
+              message: 'please select some assignees to be removed:',
+              choices: resdata.map((item: any) => {
+                return item.login
+              })
+            }], function (answers: any) {
+              issueActions.deleteAssignees({
+                ownername: ownername,
+                reposname: reposname,
+                number: issuenumber,
+                data: {
+                  assignees: answers.assignees
+                }
+              }).then((res: any) => {
+                success('remove assignees success!')
+              })
             })
-          }], function (answers: any) {
-            issueActions.deleteAssignees({
-              ownername: ownername,
-              reposname: reposname,
-              number: issuenumber,
-              data: {
-                assignees: answers.assignees
-              }
-            })
-          })
+          } else {
+            info('no assignees available to be removed!')
+          }
         })
       })
     },
@@ -634,32 +644,36 @@ export const issueStrategies: any = {
           ownername: targetName,
           reposname: reposname
         }).then((resdata: any) => {
-          let heads = [{
-            value: 'id',
-            type: 'title'
-          }, {
-            value: 'content',
-            type: 'description'
-          }, {
-            value: 'detailUrl(cmd+click)',
-            type: 'url'
-          }]
-          askquestion([{
-            type: 'checkbox',
-            name: 'comments',
-            message: 'please select some comments to be removed:',
-            choices: createChoiceTable(heads, resdata.map((item: any) => {
-              return [String(item.id), item.body, item.html_url]
-            }))
-          }], function (answers: any) {
-            issueActions.deleteComment({
-              ownername: targetName,
-              reposname: reposname,
-              ids: answers.comments.map((item: any) => {
-                return item.split('│')[1].trim()
+          if (resdata.length > 0) {
+            let heads = [{
+              value: 'id',
+              type: 'number'
+            }, {
+              value: 'content',
+              type: 'description'
+            }, {
+              value: 'detailUrl(cmd+click)',
+              type: 'url'
+            }]
+            askquestion([{
+              type: 'checkbox',
+              name: 'comments',
+              message: 'please select some comments to be removed:',
+              choices: createChoiceTable(heads, resdata.map((item: any) => {
+                return [String(item.id), item.body, item.html_url]
+              }))
+            }], function (answers: any) {
+              issueActions.deleteComment({
+                ownername: targetName,
+                reposname: reposname,
+                ids: answers.comments.map((item: any) => {
+                  return item.split('│')[1].trim()
+                })
               })
             })
-          })
+          } else {
+            info('no comments existed!you need create it first')
+          }
         })
       })
     },
@@ -685,7 +699,7 @@ export const issueStrategies: any = {
               if (resdata.length > 0) {
                 let heads = [{
                   value: 'id',
-                  type: 'title'
+                  type: 'number'
                 }, {
                   value: 'name',
                   type: 'title'

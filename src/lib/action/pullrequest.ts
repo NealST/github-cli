@@ -2,7 +2,6 @@ import { previewAccept, request } from '../tools/request';
 import { getToken, selectRepos, selectReposWithMode, getUserName } from '../tools/verification';
 import askquestion, {createChoiceTable} from '../tools/askQuestion';
 import createTable from '../tools/tableShow';
-import getHyperlinkText from '../tools/hyperlinker';
 import promiseCompose from '../tools/promiseCompose';
 import { info, success } from '../tools/output';
 import { userStrategy } from './users';
@@ -57,7 +56,6 @@ export const prActions = {
             'Accept': previewAccept
           }  
       }).then((res: any) => {
-        console.log(res.data)
         return res.data
       })
     }])
@@ -194,7 +192,6 @@ export const prActions = {
           'Accept': 'application/vnd.github.thor-preview+json'
         }  
       }).then((res: any) => {
-        console.log(res.data)
         return res.data
       })
     }])
@@ -420,17 +417,21 @@ export const prStrategies: {[key: string]: any} = {
           reposname: reposname,
           number: prnumber
         }).then((resdata: any) => {
-          let dataTable: any = createTable({
-            head: ['reviewers', 'team_reviewers'],
-            colWidths: [20, 20]
-          })
-          let usersdata = resdata.users
-          let teamdata = resdata.teams
-          let thelength = Math.max(usersdata.length, teamdata.length)
-          for (let i = 0;i < thelength; i++) {
-            dataTable.push([(usersdata[i] && usersdata[i].login) || 'no user reviewers', (teamdata[i] && teamdata[i].name) || 'no team reviewers'])
+          if (resdata.length > 0) {
+            let dataTable: any = createTable({
+              head: ['reviewers', 'team_reviewers'],
+              colWidths: [20, 20]
+            })
+            let usersdata = resdata.users
+            let teamdata = resdata.teams
+            let thelength = Math.max(usersdata.length, teamdata.length)
+            for (let i = 0;i < thelength; i++) {
+              dataTable.push([(usersdata[i] && usersdata[i].login) || 'no user reviewers', (teamdata[i] && teamdata[i].name) || 'no team reviewers'])
+            }
+            console.log(dataTable.toString())
+          } else {
+            info('no review request existed!')
           }
-          console.log(dataTable.toString())
         })
       })
     }
@@ -470,7 +471,7 @@ export const prStrategies: {[key: string]: any} = {
               success('create pull request success!')
               let dataTable: any = createTable({
                 head: ['number', 'title', 'state', 'description', 'detailUrl(cmd+click)'],
-                colWidths: [10, 20, 20, 40, 60],
+                colWidths: [10, 20, 10, 40, 60],
                 wordWrap: true
               })
               dataTable.push([resdata.number, resdata.title, resdata.state, resdata.body || 'no description', resdata.html_url])
@@ -566,7 +567,7 @@ export const prStrategies: {[key: string]: any} = {
         askquestion([{
           type: 'input',
           name: 'reviewers',
-          message: 'please input the names of reviewers(split with space):'
+          message: 'please input the names of reviewers(reviewers must be a collaborator, split with space):'
         }, {
           type: 'confirm',
           name: 'needteam',

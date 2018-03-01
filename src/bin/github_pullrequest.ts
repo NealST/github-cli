@@ -22,7 +22,7 @@ const commandTypeObject: {[key: string]: any} = {
     childOptions: {
       '-p': 'create a pull request',
       '-pr': 'create a pull request review',
-      '－rp': 'create a review request for a pull request'
+      '-rp': 'create a review request for a pull request'
     }
   },
   'et': {
@@ -53,6 +53,7 @@ const commandTypeObject: {[key: string]: any} = {
 
 program
   .version(require('../package.json').version)
+  .option('-h', 'get help')
   .parse(process.argv)
 
 program.on('--help', function () {
@@ -88,10 +89,10 @@ if (!commandTypeObject.hasOwnProperty(thecmd)) {
 }
 
 let commandObject = commandTypeObject[thecmd]
-if (commandObject.childOptions) {
-  if (!theoption) {
-    let childOptions = commandObject.childOptions
-    error('you need add a child option to this command type')
+let childOptions = commandObject.childOptions
+if (childOptions) {
+  if (!theoption || !childOptions.hasOwnProperty(theoption)) {
+    error('empty or invalid child option!')
     mainTitle('the supported child options as follows:')
     command()
     Object.keys(childOptions).forEach((item: any) => {

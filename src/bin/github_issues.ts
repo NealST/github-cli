@@ -7,6 +7,7 @@ import { issueStrategies } from '../lib/action/issues'
 
 program
   .version(require('../package.json').version)
+  .option('-h', 'get help')
   .parse(process.argv)
 
 const commandTypeObject: {[key: string]: any} = {
@@ -84,9 +85,9 @@ if (!commandTypeObject.hasOwnProperty(thecmd)) {
   process.exit()
 }
 
-if (!theoption) {
-  let childOptions = commandTypeObject[thecmd].childOptions
-  error('you need add a child option to this command type')
+let childOptions = commandTypeObject[thecmd].childOptions
+if (!theoption || !childOptions.hasOwnProperty(theoption)) {
+  error('empty or invalid child option!')
   mainTitle('the supported child options as follows:')
   command()
   Object.keys(childOptions).forEach((item: any) => {

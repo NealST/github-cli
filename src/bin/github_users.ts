@@ -7,6 +7,7 @@ import { userStrategy } from '../lib/action/users';
 
 program
   .version(require('../package.json').version)
+  .option('-h', 'get help')
   .parse(process.argv)
 
 const commandTypeObject: {[key: string]: any} = {
@@ -69,8 +70,8 @@ if (!commandTypeObject.hasOwnProperty(thecmd)) {
 
 let childOptions = commandTypeObject[thecmd].childOptions
 if (childOptions) {
-  if (!theoption) {
-    error('you need add a child option to this command type')
+  if (!theoption || !childOptions.hasOwnProperty(theoption)) {
+    error('empty or invalid child option!')
     mainTitle('the supported child options as follows:')
     command()
     Object.keys(childOptions).forEach((item: any) => {

@@ -146,7 +146,7 @@ This scope is responsible for completing the task of searching,you could get sup
 $ gh sr
 ```  
 The detail usage as follows:  
-![](https://s1.ax1x.com/2018/02/27/9BuqfJ.png)  
+![](https://s1.ax1x.com/2018/03/01/9rlbEq.png)  
 
 ### Users
 This scope is responsible for personal actions, you could get the supported child commands and options through  

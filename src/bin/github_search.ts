@@ -7,14 +7,14 @@ import { searchStrategy } from '../lib/action/search'
 
 program
   .version(require('../package.json').version)
+  .option('-h', 'get help')
   .parse(process.argv)
 
 const commandTypeObject: {[key: string]: string} = {
-  '-r': 'search repositories',
-  '-c': 'search commits',
-  '-i': 'search issues',
-  '-u': 'search users',
-  '-e': 'search code'
+  'r': 'search repositories',
+  'c': 'search commits',
+  'i': 'search issues',
+  'u': 'search users'
 }
 
 program.on('--help', function () {
@@ -32,14 +32,14 @@ program.on('--help', function () {
 
 let paramArray = process.argv.slice(2)
 let thecmd = paramArray[0] // 命令类型
-let theoption = paramArray[1] // 参数值
 
-if (!theoption || theoption === '-h') {
+if (!thecmd || thecmd === '-h') {
   program.help()
 }
 
-if (!commandTypeObject.hasOwnProperty(theoption)) {
+if (!commandTypeObject.hasOwnProperty(thecmd)) {
   error('the option you input is invalid, you could get the surpported options through $ gh sr -h')
+  process.exit()
 }
 
-searchStrategy[theoption]()
+searchStrategy[thecmd]()

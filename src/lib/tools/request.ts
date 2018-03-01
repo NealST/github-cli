@@ -153,12 +153,16 @@ export const request = function (url: string, type: string, data: any, requestOp
       reject(err)
     }).then((res: any) => {
       // 备注，star仓库等操作成功后也会返回204
-      if (res.status === 204) {
+      if (res.status === 204 && process.env.githubActionType === 'remove') {
         success('delete success!')
       }
       resolve(res)
     })
   })).catch((err: any) => {
+    if (err.response.status === 404 && process.argv.indexOf('ck') > 0) {
+      error('this user is not a collaborator!')
+      return
+    }
     if (err.response && err.response.data) {
       error(err.response.statusText)
       error(err.response.data.message)
@@ -177,7 +181,9 @@ export const request = function (url: string, type: string, data: any, requestOp
       if (err.response.status === 405)*/
       // 有些查看操作，checkcolloborators如果结果为否会返回404
     }
-    console.log(err)
+    if (err.message === 'timeout of 5000ms exceeded') {
+      error('request timeout,please try again')
+    }
     process.exit()
   })
 }

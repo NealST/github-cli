@@ -29,7 +29,7 @@ const commandTypeObject: { [key: string]: any } = {
     message: 'repository action(仓库操作)',
     fontstext: 'repos'
   },
-  'sc': {
+  'sr': {
     message: 'search action(搜索操作)',
     fontstext: 'search'
   },
@@ -41,6 +41,7 @@ const commandTypeObject: { [key: string]: any } = {
 
 program
   .version(pkg.version)
+  .option('-h', 'get help')
   .parse(process.argv)
 
 program.on('--help', function() {
@@ -59,7 +60,6 @@ program.on('--help', function() {
   })
 })
 
-console.log(process.argv)
 let args = process.argv.slice(3)
 let thecommand = program.args[0]
 
@@ -68,12 +68,17 @@ if (!thecommand || thecommand === '-h') {
 }
 
 if (!commandTypeObject.hasOwnProperty(thecommand)) {
-  error('the command you input is invalid,you could look for surpported commands through $ gh -h')
+  error('the command you input is invalid,you could look for surpported commands through $ gh')
+  process.exit()
 }
 
 if (args.indexOf('-n') > 0) {
   // if -n option exist, it indicate that you want do actions at another github user namespace
   process.env.githubUserMode = 'target'
+}
+
+if (args.indexOf('rm') > 0) {
+  process.env.githubActionType = 'remove'
 }
 
 // 子命令标题
@@ -91,7 +96,6 @@ if (exists(binFilePath)) {
     return exists(p) && fs.statSync(p).isFile() ? p : binary
   }, bin)
 }
-console.log(bin)
 let task = spawn(bin, args, {
   stdio: 'inherit'
 })

@@ -3,7 +3,6 @@ import { getToken, getUserName, selectRepos, selectReposWithMode } from '../tool
 import promiseCompose from '../tools/promiseCompose';
 import askquestion from '../tools/askQuestion';
 import createTable from '../tools/tableShow';
-import getHyperlinkText from '../tools/hyperlinker';
 import { reposActions } from './repos';
 import { prActions } from './pullrequest';
 import { issueActions } from './issues';
@@ -107,6 +106,20 @@ export const rtActions = {
   }
 }
 
+const emojiMap: any = {
+  '+1': '+1',
+  '-1': '-1',
+  'laugh': 'grinning', 
+  'confused': 'confused', 
+  'heart': 'heart', 
+  'hooray': 'tada'
+}
+const getReaction = function (emoji: string) {
+  return Object.keys(emojiMap).filter((item: string) => {
+    return get(emojiMap[item]) === emoji
+  })[0]
+}
+
 export const reactionStrategy: {[key: string]: any} = {
   'ls': {
     '-c': function () {
@@ -141,14 +154,18 @@ export const reactionStrategy: {[key: string]: any} = {
                 reposname: reposname,
                 id: answers.comment.split('│')[1].trim()
               }).then((resdata: any) => {
-                let dataTable: any = createTable({
-                  head: ['id', 'reaction', 'creator', 'create_date'],
-                  colWidths: [10, 10, 20, 40]
-                })
-                resdata.forEach((item: any) => {
-                  dataTable.push([item.id, get(item.content), item.user.login, item.created_at])
-                })
-                console.log(dataTable.toString())
+                if (resdata.length === 0) {
+                  info('no reactions existed for this commit comment!')
+                } else {
+                  let dataTable: any = createTable({
+                    head: ['id', 'reaction', 'creator', 'create_date'],
+                    colWidths: [10, 10, 20, 40]
+                  })
+                  resdata.forEach((item: any) => {
+                    dataTable.push([item.id, get(emojiMap[item.content]), item.user.login, item.created_at])
+                  })
+                  console.log(dataTable.toString())
+                }
               })
             })
           }
@@ -156,7 +173,7 @@ export const reactionStrategy: {[key: string]: any} = {
       })
     },
     '-i': function () {
-      selectReposWithMode((ownername: string, reposname: string) => {
+      selectReposWithMode((reposname: string, ownername: string) => {
         issueActions.listForRepos({
           ownername: ownername,
           reposname: reposname
@@ -190,14 +207,18 @@ export const reactionStrategy: {[key: string]: any} = {
                 reposname: reposname,
                 number: answers.issueItem.split('│')[1].trim()
               }).then((resdata: any) => {
-                let dataTable: any = createTable({
-                  head: ['id', 'reaction', 'creator', 'create_date'],
-                  colWidths: [10, 10, 20, 40]
-                })
-                resdata.forEach((item: any) => {
-                  dataTable.push([item.id, get(item.content), item.user.login, item.created_at])
-                })
-                console.log(dataTable.toString())
+                if (resdata.length > 0) {
+                  let dataTable: any = createTable({
+                    head: ['id', 'reaction', 'creator', 'create_date'],
+                    colWidths: [10, 10, 20, 40]
+                  })
+                  resdata.forEach((item: any) => {
+                    dataTable.push([item.id, get(emojiMap[item.content]), item.user.login, item.created_at])
+                  })
+                  console.log(dataTable.toString())
+                } else {
+                  info('no reactions existed for this issue')
+                }
               })
             })
           }
@@ -236,14 +257,18 @@ export const reactionStrategy: {[key: string]: any} = {
                 reposname: reposname,
                 id: answers.comment.split('│')[1].trim()
               }).then((resdata: any) => {
-                let dataTable: any = createTable({
-                  head: ['id', 'reaction', 'creator', 'create_date'],
-                  colWidths: [10, 10, 20, 40]
-                })
-                resdata.forEach((item: any) => {
-                  dataTable.push([item.id, get(item.content), item.user.login, item.created_at])
-                })
-                console.log(dataTable.toString())
+                if (resdata.length > 0) {
+                  let dataTable: any = createTable({
+                    head: ['id', 'reaction', 'creator', 'create_date'],
+                    colWidths: [10, 10, 20, 40]
+                  })
+                  resdata.forEach((item: any) => {
+                    dataTable.push([item.id, get(emojiMap[item.content]), item.user.login, item.created_at])
+                  })
+                  console.log(dataTable.toString())
+                } else {
+                  info('no reactions existed for this issue comment')
+                }
               })
             })
           }
@@ -282,14 +307,18 @@ export const reactionStrategy: {[key: string]: any} = {
                 reposname: reposname,
                 id: answers.comment.split('│')[1].trim()
               }).then((resdata: any) => {
-                let dataTable: any = createTable({
-                  head: ['id', 'reaction', 'creator', 'create_date'],
-                  colWidths: [10, 10, 20, 40]
-                })
-                resdata.forEach((item: any) => {
-                  dataTable.push([item.id, get(item.content), item.user.login, item.created_at])
-                })
-                console.log(dataTable.toString())
+                if (resdata.length > 0) {
+                  let dataTable: any = createTable({
+                    head: ['id', 'reaction', 'creator', 'create_date'],
+                    colWidths: [10, 10, 20, 40]
+                  })
+                  resdata.forEach((item: any) => {
+                    dataTable.push([item.id, get(emojiMap[item.content]), item.user.login, item.created_at])
+                  })
+                  console.log(dataTable.toString())
+                } else {
+                  info('no reactions existed for this review comment')
+                }
               })
             })
           }
@@ -329,7 +358,7 @@ export const reactionStrategy: {[key: string]: any} = {
               name: 'reaction',
               message: 'please select a reaction type:',
               choices: ['+1', '-1', 'laugh', 'confused', 'heart', 'hooray'].map((item: any) => {
-                return get(item)
+                return get(emojiMap[item])
               })
             }], (answers: any) => {
               rtActions.createForCommitComment({
@@ -337,7 +366,7 @@ export const reactionStrategy: {[key: string]: any} = {
                 reposname: reposname,
                 id: answers.comment.split('│')[1].trim(),
                 data: {
-                  content: which(answers.reaction)
+                  content: getReaction(answers.reaction)
                 }
               }).then((resdata: any) => {
                 success('create reaction for commit comment success!')
@@ -345,7 +374,7 @@ export const reactionStrategy: {[key: string]: any} = {
                   head: ['id', 'creator', 'reaction', 'create_date'],
                   colWidths: [10, 20, 20, 40]
                 })
-                dataTable.push([resdata.id, resdata.user.login, get(resdata.content), resdata.created_at])
+                dataTable.push([resdata.id, resdata.user.login, get(emojiMap[resdata.content]), resdata.created_at])
                 console.log(dataTable.toString())
               })
             })
@@ -354,7 +383,7 @@ export const reactionStrategy: {[key: string]: any} = {
       })
     },
     '-i': function () {
-      selectReposWithMode((ownername: string, reposname: string) => {
+      selectReposWithMode((reposname: string, ownername: string) => {
         issueActions.listForRepos({
           ownername: ownername,
           reposname: reposname
@@ -387,15 +416,15 @@ export const reactionStrategy: {[key: string]: any} = {
               name: 'reaction',
               message: 'please select a reaction type:',
               choices: ['+1', '-1', 'laugh', 'confused', 'heart', 'hooray'].map((item: any) => {
-                return get(item)
+                return get(emojiMap[item])
               })
             }], function (answers: any) {
               rtActions.createForIssue({
                 ownername: ownername,
                 reposname: reposname,
-                id: answers.issueItem.split('│')[1].trim(),
+                number: answers.issueItem.split('│')[1].trim(),
                 data: {
-                  content: which(answers.reaction)
+                  content: getReaction(answers.reaction)
                 }
               }).then((resdata: any) => {
                 success('reaction for issue created success!')
@@ -403,7 +432,7 @@ export const reactionStrategy: {[key: string]: any} = {
                   head: ['id', 'creator', 'reaction', 'create_date'],
                   colWidths: [10, 20, 20, 40]
                 })
-                dataTable.push([resdata.id, resdata.user.login, get(resdata.content), resdata.created_at])
+                dataTable.push([resdata.id, resdata.user.login, get(emojiMap[resdata.content]), resdata.created_at])
                 console.log(dataTable.toString())
               })
             })
@@ -442,7 +471,7 @@ export const reactionStrategy: {[key: string]: any} = {
               name: 'reaction',
               message: 'please select a reaction type:',
               choices: ['+1', '-1', 'laugh', 'confused', 'heart', 'hooray'].map((item: any) => {
-                return get(item)
+                return get(emojiMap[item])
               })
             }], (answers: any) => {
               rtActions.createForIssueComment({
@@ -450,7 +479,7 @@ export const reactionStrategy: {[key: string]: any} = {
                 reposname: reposname,
                 id: answers.comment.split('│')[1].trim(),
                 data: {
-                  content: which(answers.reaction)
+                  content: getReaction(answers.reaction)
                 }
               }).then((resdata: any) => {
                 success('reaction for issue comment created success!')
@@ -458,7 +487,7 @@ export const reactionStrategy: {[key: string]: any} = {
                   head: ['id', 'creator', 'reaction', 'create_date'],
                   colWidths: [10, 20, 20, 40]
                 })
-                dataTable.push([resdata.id, resdata.user.login, get(resdata.content), resdata.created_at])
+                dataTable.push([resdata.id, resdata.user.login, get(emojiMap[resdata.content]), resdata.created_at])
                 console.log(dataTable.toString())
               })
             })
@@ -497,7 +526,7 @@ export const reactionStrategy: {[key: string]: any} = {
               name: 'reaction',
               message: 'please select a reaction type:',
               choices: ['+1', '-1', 'laugh', 'confused', 'heart', 'hooray'].map((item: any) => {
-                return get(item)
+                return get(emojiMap[item])
               })
             }], (answers: any) => {
               rtActions.createForPrReviewComment({
@@ -505,7 +534,7 @@ export const reactionStrategy: {[key: string]: any} = {
                 reposname: reposname,
                 id: answers.comment.split('│')[1].trim(),
                 data: {
-                  content: which(answers.reaction)
+                  content: getReaction(answers.reaction)
                 }
               }).then((resdata: any) => {
                 success('reaction for pull request review comment created success!')
@@ -513,7 +542,7 @@ export const reactionStrategy: {[key: string]: any} = {
                   head: ['id', 'creator', 'reaction', 'create_date'],
                   colWidths: [10, 20, 20, 40]
                 })
-                dataTable.push([resdata.id, resdata.user.login, get(resdata.content), resdata.created_at])
+                dataTable.push([resdata.id, resdata.user.login, get(emojiMap[resdata.content]), resdata.created_at])
                 console.log(dataTable.toString())
               })
             })
