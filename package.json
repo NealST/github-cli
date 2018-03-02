@@ -1,6 +1,6 @@
 {
   "name": "@mozheng-neal/github_cli",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "github的命令行操作工具",
   "scripts": {
     "test": "jest --watch",
