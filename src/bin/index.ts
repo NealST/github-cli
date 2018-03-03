@@ -77,7 +77,7 @@ if (args.indexOf('-n') > 0) {
   process.env.githubUserMode = 'target'
 }
 
-if (args.indexOf('rm') > 0) {
+if (process.argv.indexOf('rm') > 0) {
   process.env.githubActionType = 'remove'
 }
 

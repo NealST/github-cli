@@ -28,7 +28,6 @@ export const reposActions = {
           }
         })
       })).then((res: any) => {
-        console.log(res)
         return res
       })
     }])
@@ -192,7 +191,6 @@ export const reposActions = {
   compareCommits (compareOptions: any) {
     return request(`/repos/${compareOptions.ownername}/${compareOptions.reposname}/compare/${compareOptions.base}...${compareOptions.head}`, 'get', {})
       .then((res: any) => {
-        console.log(res.data)
         return res.data
       })
   },

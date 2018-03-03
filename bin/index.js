@@ -68,7 +68,7 @@ if (args.indexOf('-n') > 0) {
     // if -n option exist, it indicate that you want do actions at another github user namespace
     process.env.githubUserMode = 'target';
 }
-if (args.indexOf('rm') > 0) {
+if (process.argv.indexOf('rm') > 0) {
     process.env.githubActionType = 'remove';
 }
 // 子命令标题
