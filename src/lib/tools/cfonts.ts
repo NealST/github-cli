@@ -14,7 +14,7 @@ export default function textFonts (text: string, textOptions?: cfontsOptions) {
     font: '3d',
     align: 'center',
     colors: ['magenta'],
-    background: 'Black',
+    background: 'black',
     letterSpacing: 1,
     lineHeight: 0.00005,
     space: true,
