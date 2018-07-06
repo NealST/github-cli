@@ -7,16 +7,21 @@ const configFilePath = `${theHomeDir}/githubUserInfo.json`
 // 获取信息
 export const getInfo = function () {
   return (new Promise(function (resolve, reject) {
-    readFile(configFilePath, function (err, data) {
-      if (err) {
-        reject(err)
-      }
-      let filedata = data.toString()
-      while (typeof filedata === 'string') {
-        filedata = JSON.parse(filedata)
-      }
-      resolve(filedata)
-    })
+    if (!existsSync(configFilePath)) {
+      resolve({})
+    } else {
+      readFile(configFilePath, function (err, data) {
+        if (err) {
+          reject(err)
+          return
+        }
+        let filedata = data.toString()
+        while (typeof filedata === 'string') {
+          filedata = JSON.parse(filedata)
+        }
+        resolve(filedata)
+      })
+    }
   })).catch((err: any) => {
     console.log(err)
   })
